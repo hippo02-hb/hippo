@@ -118,7 +118,24 @@ CREATE TABLE news (
 );
 ```
 
-## 3. Mock Data cần thay thế
+## 3. Database Connection Setup
+
+### Neon PostgreSQL Connection
+```
+Host: ep-royal-cake-afq7xl9y-pooler.c-2.us-west-2.aws.neon.tech
+Database: neondb  
+User: neondb_owner
+Password: npg_ziGvUol6KN7C
+Port: 5432
+SSL: require
+```
+
+### Connection String
+```
+postgresql://neondb_owner:npg_ziGvUol6KN7C@ep-royal-cake-afq7xl9y-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require
+```
+
+## 4. Mock Data cần thay thế
 
 ### Trong `/app/frontend/src/data/mock.js`:
 - `mockMovies` → API call tới `/api/movies`
