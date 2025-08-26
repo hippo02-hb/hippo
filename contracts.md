@@ -199,7 +199,7 @@ postgresql://neondb_owner:npg_ziGvUol6KN7C@ep-royal-cake-afq7xl9y-pooler.c-2.us-
 - Ghế phải liên tiếp (optional)
 - Kiểm tra tuổi cho phim có rating
 
-## 7. Error Handling
+## 8. Error Handling
 
 - Movie sold out scenarios
 - Invalid showtime selections  
