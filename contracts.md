@@ -182,7 +182,7 @@ postgresql://neondb_owner:npg_ziGvUol6KN7C@ep-royal-cake-afq7xl9y-pooler.c-2.us-
 - Booking history
 - G-Star membership points
 
-## 6. Business Logic
+## 7. Business Logic
 
 ### Seat Management
 - Prevent double booking
