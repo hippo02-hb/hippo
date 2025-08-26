@@ -164,7 +164,7 @@ postgresql://neondb_owner:npg_ziGvUol6KN7C@ep-royal-cake-afq7xl9y-pooler.c-2.us-
 - Connect tới news API
 - Implement news detail pages
 
-## 5. New Features cần thêm
+## 6. New Features cần thêm
 
 ### Booking Flow
 - Seat selection UI
