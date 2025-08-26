@@ -1,4 +1,4 @@
-# Galaxy Cinema - Backend Integration Contracts
+# Galaxy Cinema - Backend Integration Contracts (Neon PostgreSQL)
 
 ## 1. API Endpoints cần phát triển
 
@@ -25,7 +25,7 @@
 - `GET /api/news` - Lấy tin tức/khuyến mãi
 - `GET /api/news/:id` - Lấy chi tiết tin tức
 
-## 2. MongoDB Models cần tạo
+## 2. PostgreSQL Tables cần tạo
 
 ### Movie Model
 ```javascript
