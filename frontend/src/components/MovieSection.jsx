@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Star, Play } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Star, Play, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
-import { mockMovies } from '../data/mock';
+import { moviesAPI, handleAPIError } from '../services/api';
 
 const MovieCard = ({ movie }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -62,7 +62,8 @@ const MovieCard = ({ movie }) => {
         
         <div className="space-y-2 text-sm text-gray-600">
           <p><span className="font-semibold">Thể loại:</span> {movie.genre}</p>
-          <p><span className="font-semibold">Thời lượng:</span> {movie.duration}</p>
+          <p><span className="font-semibold">Thời lượng:</span> {movie.duration} phút</p>
+          <p><span className="font-semibold">Đạo diễn:</span> {movie.director}</p>
         </div>
 
         <div className="mt-4 flex justify-between items-center">
@@ -84,27 +85,87 @@ const MovieCard = ({ movie }) => {
 
 const MovieSection = () => {
   const [activeTab, setActiveTab] = useState('showing');
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const tabs = [
-    { id: 'showing', label: 'Đang chiếu', count: mockMovies.filter(m => m.status === 'showing').length },
-    { id: 'coming', label: 'Sắp chiếu', count: mockMovies.filter(m => m.status === 'coming').length },
-    { id: 'imax', label: 'Phim IMAX', count: 3 },
-    { id: 'all', label: 'Toàn quốc', count: mockMovies.length }
+    { id: 'showing', label: 'Đang chiếu', count: 0 },
+    { id: 'coming', label: 'Sắp chiếu', count: 0 },
+    { id: 'imax', label: 'Phim IMAX', count: 0 },
+    { id: 'all', label: 'Toàn quốc', count: 0 }
   ];
 
-  const getFilteredMovies = () => {
-    switch (activeTab) {
-      case 'showing':
-        return mockMovies.filter(movie => movie.status === 'showing');
-      case 'coming':
-        return mockMovies.filter(movie => movie.status === 'coming');
-      case 'imax':
-        return mockMovies.slice(0, 3); // Mock IMAX movies
-      case 'all':
-      default:
-        return mockMovies;
+  const fetchMovies = async (status = null) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      let response;
+      switch (activeTab) {
+        case 'showing':
+          response = await moviesAPI.getShowing();
+          break;
+        case 'coming':
+          response = await moviesAPI.getComing();
+          break;
+        case 'imax':
+          // For now, just get all movies (can be enhanced later)
+          response = await moviesAPI.getAll();
+          break;
+        case 'all':
+        default:
+          response = await moviesAPI.getAll();
+          break;
+      }
+      
+      setMovies(response.data);
+    } catch (err) {
+      setError(handleAPIError(err, 'Không thể tải danh sách phim'));
+      console.error('Error fetching movies:', err);
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchMovies();
+  }, [activeTab]);
+
+  // Update tab counts
+  const updateTabCounts = () => {
+    const showingCount = movies.filter(m => m.status === 'showing').length;
+    const comingCount = movies.filter(m => m.status === 'coming').length;
+    
+    tabs[0].count = showingCount;
+    tabs[1].count = comingCount;
+    tabs[2].count = Math.min(3, movies.length); // Mock IMAX count
+    tabs[3].count = movies.length;
+  };
+
+  useEffect(() => {
+    updateTabCounts();
+  }, [movies]);
+
+  if (error) {
+    return (
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+            <Button 
+              onClick={() => fetchMovies()} 
+              className="mt-4 bg-orange-500 hover:bg-orange-600"
+            >
+              Thử lại
+            </Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-12 bg-gray-50">
@@ -136,19 +197,40 @@ const MovieSection = () => {
           </div>
         </div>
 
-        {/* Movies Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
-          {getFilteredMovies().map((movie) => (
-            <MovieCard key={movie.id} movie={movie} />
-          ))}
-        </div>
+        {/* Loading State */}
+        {loading && (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+            <span className="ml-2 text-gray-600">Đang tải phim...</span>
+          </div>
+        )}
 
-        {/* Load More Button */}
-        <div className="text-center mt-8">
-          <Button variant="outline" size="lg" className="px-8">
-            Xem thêm phim
-          </Button>
-        </div>
+        {/* Movies Grid */}
+        {!loading && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
+              {movies.map((movie) => (
+                <MovieCard key={movie.id} movie={movie} />
+              ))}
+            </div>
+
+            {/* Load More Button */}
+            {movies.length > 0 && (
+              <div className="text-center mt-8">
+                <Button variant="outline" size="lg" className="px-8">
+                  Xem thêm phim
+                </Button>
+              </div>
+            )}
+
+            {/* No movies message */}
+            {movies.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-500">Không có phim nào trong danh mục này.</p>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </section>
   );
