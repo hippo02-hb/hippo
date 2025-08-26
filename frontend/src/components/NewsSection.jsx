@@ -1,7 +1,7 @@
-import React from 'react';
-import { Calendar, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
-import { mockNews } from '../data/mock';
+import { newsAPI, handleAPIError } from '../services/api';
 
 const NewsCard = ({ news }) => {
   return (
@@ -18,7 +18,7 @@ const NewsCard = ({ news }) => {
       <div className="p-4">
         <div className="flex items-center text-gray-500 text-sm mb-2">
           <Calendar className="h-4 w-4 mr-2" />
-          {new Date(news.date).toLocaleDateString('vi-VN')}
+          {new Date(news.publish_date).toLocaleDateString('vi-VN')}
         </div>
         
         <h3 className="font-bold text-lg mb-2 line-clamp-2 group-hover:text-orange-500 transition-colors">
@@ -39,6 +39,48 @@ const NewsCard = ({ news }) => {
 };
 
 const NewsSection = () => {
+  const [news, setNews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    loadNews();
+  }, []);
+
+  const loadNews = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await newsAPI.getAll();
+      setNews(response.data);
+    } catch (err) {
+      setError(handleAPIError(err, 'Không thể tải tin tức'));
+      console.error('Error loading news:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (error) {
+    return (
+      <section className="py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+            <Button 
+              onClick={loadNews} 
+              className="mt-4 bg-orange-500 hover:bg-orange-600"
+            >
+              Thử lại
+            </Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-12 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -57,28 +99,45 @@ const NewsSection = () => {
           </Button>
         </div>
 
-        {/* News Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockNews.map((news) => (
-            <NewsCard key={news.id} news={news} />
-          ))}
-          
-          {/* Add more mock news for display */}
-          <div className="bg-gradient-to-br from-orange-100 to-red-100 rounded-lg p-6 flex flex-col justify-center items-center text-center">
-            <div className="bg-orange-500 text-white rounded-full p-4 mb-4">
-              <Calendar className="h-8 w-8" />
-            </div>
-            <h3 className="font-bold text-lg mb-2 text-gray-800">
-              Ưu Đãi Thành Viên G-Star
-            </h3>
-            <p className="text-gray-600 text-sm mb-4">
-              Đăng ký ngay để nhận được các ưu đãi độc quyền
-            </p>
-            <Button className="bg-orange-500 hover:bg-orange-600 text-white">
-              Tham gia ngay
-            </Button>
+        {/* Loading State */}
+        {loading && (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+            <span className="ml-2 text-gray-600">Đang tải tin tức...</span>
           </div>
-        </div>
+        )}
+
+        {/* News Grid */}
+        {!loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {news.map((newsItem) => (
+              <NewsCard key={newsItem.id} news={newsItem} />
+            ))}
+            
+            {/* Promotional CTA Card */}
+            <div className="bg-gradient-to-br from-orange-100 to-red-100 rounded-lg p-6 flex flex-col justify-center items-center text-center">
+              <div className="bg-orange-500 text-white rounded-full p-4 mb-4">
+                <Calendar className="h-8 w-8" />
+              </div>
+              <h3 className="font-bold text-lg mb-2 text-gray-800">
+                Ưu Đãi Thành Viên G-Star
+              </h3>
+              <p className="text-gray-600 text-sm mb-4">
+                Đăng ký ngay để nhận được các ưu đãi độc quyền
+              </p>
+              <Button className="bg-orange-500 hover:bg-orange-600 text-white">
+                Tham gia ngay
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* No news message */}
+        {!loading && news.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500">Hiện tại chưa có tin tức mới.</p>
+          </div>
+        )}
       </div>
     </section>
   );
