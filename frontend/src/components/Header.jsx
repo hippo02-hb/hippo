@@ -1,18 +1,30 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, User, Menu, X } from 'lucide-react';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
   const navItems = [
-    { name: 'Mua Vé', href: '#', active: true },
-    { name: 'Phim', href: '#' },
+    { name: 'Mua Vé', href: '/', active: true },
+    { name: 'Phim', href: '/search?status=showing' },
     { name: 'Sân Phẩm', href: '#' },
     { name: 'Góc Điện Ảnh', href: '#' },
     { name: 'Sự Kiện', href: '#' },
     { name: 'Rạp/Giá Vé', href: '#' }
   ];
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
+  };
 
   return (
     <header className="bg-white shadow-sm relative z-50">
@@ -20,22 +32,24 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <img 
-              src="https://www.galaxycine.vn/website/images/galaxy-logo.png" 
-              alt="Galaxy Cinema" 
-              className="h-10 w-auto"
-              onError={(e) => {
-                e.target.src = "https://images.unsplash.com/photo-1489599112903-4e6e116119c4?w=120&h=40&fit=crop";
-              }}
-            />
+            <Link to="/">
+              <img 
+                src="https://www.galaxycine.vn/website/images/galaxy-logo.png" 
+                alt="Galaxy Cinema" 
+                className="h-10 w-auto"
+                onError={(e) => {
+                  e.target.src = "https://images.unsplash.com/photo-1489599112903-4e6e116119c4?w=120&h=40&fit=crop";
+                }}
+              />
+            </Link>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
             {navItems.map((item, index) => (
-              <a
+              <Link
                 key={index}
-                href={item.href}
+                to={item.href}
                 className={`px-3 py-2 text-sm font-medium transition-colors ${
                   item.active 
                     ? 'bg-orange-500 text-white rounded-md' 
@@ -43,14 +57,33 @@ const Header = () => {
                 }`}
               >
                 {item.name}
-              </a>
+              </Link>
             ))}
           </nav>
 
-          {/* Right side actions */}
+          {/* Search and Actions */}
           <div className="flex items-center space-x-4">
-            {/* Search Icon */}
-            <Button variant="ghost" size="sm" className="hidden md:flex">
+            {/* Desktop Search */}
+            <form onSubmit={handleSearch} className="hidden lg:flex items-center">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Tìm phim..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 pr-4 py-2 w-64 text-sm"
+                />
+              </div>
+            </form>
+
+            {/* Mobile Search Icon */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="lg:hidden"
+              onClick={() => navigate('/search')}
+            >
               <Search className="h-4 w-4" />
             </Button>
 
@@ -79,10 +112,24 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden absolute top-16 left-0 right-0 bg-white shadow-lg border-t">
             <div className="px-4 py-2 space-y-2">
+              {/* Mobile Search */}
+              <form onSubmit={handleSearch} className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    type="text"
+                    placeholder="Tìm phim..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 pr-4 py-2 w-full text-sm"
+                  />
+                </div>
+              </form>
+
               {navItems.map((item, index) => (
-                <a
+                <Link
                   key={index}
-                  href={item.href}
+                  to={item.href}
                   className={`block px-3 py-2 text-sm font-medium transition-colors ${
                     item.active 
                       ? 'bg-orange-500 text-white rounded-md' 
@@ -91,8 +138,9 @@ const Header = () => {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
-                </a>
+                </Link>
               ))}
+              
               <div className="pt-2 border-t">
                 <div className="flex items-center space-x-2 text-sm mb-2">
                   <span className="text-gray-600">Đăng Nhập</span>

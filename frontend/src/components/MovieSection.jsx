@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Star, Play, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { moviesAPI, handleAPIError } from '../services/api';
+import toast from 'react-hot-toast';
 
 const MovieCard = ({ movie }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -16,69 +18,80 @@ const MovieCard = ({ movie }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="relative">
-        <img 
-          src={movie.poster} 
-          alt={movie.title}
-          className="w-full h-80 object-cover"
-        />
-        
-        {/* Overlay on hover */}
-        <div className={`absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center transition-opacity duration-300 ${
-          isHovered ? 'opacity-100' : 'opacity-0'
-        }`}>
-          <Button
-            onClick={(e) => {
-              e.stopPropagation();
-              openTrailer(movie.trailer);
-            }}
-            size="lg"
-            className="bg-red-600 hover:bg-red-700 text-white"
-          >
-            <Play className="h-5 w-5 mr-2" />
-            Xem Trailer
-          </Button>
-        </div>
-
-        {/* Rating Badge */}
-        <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
-          {movie.rating}
-        </div>
-
-        {/* Status Badge */}
-        <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold ${
-          movie.status === 'showing' 
-            ? 'bg-green-500 text-white' 
-            : 'bg-blue-500 text-white'
-        }`}>
-          {movie.status === 'showing' ? 'Đang chiếu' : 'Sắp chiếu'}
-        </div>
-      </div>
-
-      <div className="p-4">
-        <h3 className="font-bold text-lg mb-2 line-clamp-2 group-hover:text-orange-500 transition-colors">
-          {movie.title}
-        </h3>
-        
-        <div className="space-y-2 text-sm text-gray-600">
-          <p><span className="font-semibold">Thể loại:</span> {movie.genre}</p>
-          <p><span className="font-semibold">Thời lượng:</span> {movie.duration} phút</p>
-          <p><span className="font-semibold">Đạo diễn:</span> {movie.director}</p>
-        </div>
-
-        <div className="mt-4 flex justify-between items-center">
-          <div className="flex items-center">
-            <Star className="h-4 w-4 text-yellow-400 fill-current" />
-            <span className="ml-1 text-sm font-medium">8.5</span>
-          </div>
+      <Link to={`/movie/${movie.id}`}>
+        <div className="relative">
+          <img 
+            src={movie.poster} 
+            alt={movie.title}
+            className="w-full h-80 object-cover"
+          />
           
-          {movie.status === 'showing' && (
-            <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
-              Đặt vé
+          {/* Overlay on hover */}
+          <div className={`absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center transition-opacity duration-300 ${
+            isHovered ? 'opacity-100' : 'opacity-0'
+          }`}>
+            <Button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openTrailer(movie.trailer);
+              }}
+              size="lg"
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              <Play className="h-5 w-5 mr-2" />
+              Xem Trailer
             </Button>
-          )}
+          </div>
+
+          {/* Rating Badge */}
+          <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
+            {movie.rating}
+          </div>
+
+          {/* Status Badge */}
+          <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold ${
+            movie.status === 'showing' 
+              ? 'bg-green-500 text-white' 
+              : 'bg-blue-500 text-white'
+          }`}>
+            {movie.status === 'showing' ? 'Đang chiếu' : 'Sắp chiếu'}
+          </div>
         </div>
-      </div>
+
+        <div className="p-4">
+          <h3 className="font-bold text-lg mb-2 line-clamp-2 group-hover:text-orange-500 transition-colors">
+            {movie.title}
+          </h3>
+          
+          <div className="space-y-2 text-sm text-gray-600">
+            <p><span className="font-semibold">Thể loại:</span> {movie.genre}</p>
+            <p><span className="font-semibold">Thời lượng:</span> {movie.duration} phút</p>
+            <p><span className="font-semibold">Đạo diễn:</span> {movie.director}</p>
+          </div>
+
+          <div className="mt-4 flex justify-between items-center">
+            <div className="flex items-center">
+              <Star className="h-4 w-4 text-yellow-400 fill-current" />
+              <span className="ml-1 text-sm font-medium">8.5</span>
+            </div>
+            
+            {movie.status === 'showing' && (
+              <Button 
+                size="sm" 
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  // This will be handled by the link to movie detail page
+                }}
+              >
+                Đặt vé
+              </Button>
+            )}
+          </div>
+        </div>
+      </Link>
     </div>
   );
 };
@@ -96,7 +109,7 @@ const MovieSection = () => {
     { id: 'all', label: 'Toàn quốc', count: 0 }
   ];
 
-  const fetchMovies = async (status = null) => {
+  const fetchMovies = async () => {
     setLoading(true);
     setError(null);
     
@@ -121,8 +134,9 @@ const MovieSection = () => {
       
       setMovies(response.data);
     } catch (err) {
-      setError(handleAPIError(err, 'Không thể tải danh sách phim'));
-      console.error('Error fetching movies:', err);
+      const errorMessage = handleAPIError(err, 'Không thể tải danh sách phim');
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -132,20 +146,21 @@ const MovieSection = () => {
     fetchMovies();
   }, [activeTab]);
 
-  // Update tab counts
-  const updateTabCounts = () => {
-    const showingCount = movies.filter(m => m.status === 'showing').length;
-    const comingCount = movies.filter(m => m.status === 'coming').length;
-    
-    tabs[0].count = showingCount;
-    tabs[1].count = comingCount;
-    tabs[2].count = Math.min(3, movies.length); // Mock IMAX count
-    tabs[3].count = movies.length;
+  // Update tab counts based on current movies
+  const getTabCount = (tabId) => {
+    switch (tabId) {
+      case 'showing':
+        return movies.filter(m => m.status === 'showing').length;
+      case 'coming':
+        return movies.filter(m => m.status === 'coming').length;
+      case 'imax':
+        return Math.min(3, movies.length); // Mock IMAX count
+      case 'all':
+        return movies.length;
+      default:
+        return 0;
+    }
   };
-
-  useEffect(() => {
-    updateTabCounts();
-  }, [movies]);
 
   if (error) {
     return (
@@ -156,7 +171,7 @@ const MovieSection = () => {
               {error}
             </div>
             <Button 
-              onClick={() => fetchMovies()} 
+              onClick={fetchMovies} 
               className="mt-4 bg-orange-500 hover:bg-orange-600"
             >
               Thử lại
@@ -191,7 +206,7 @@ const MovieSection = () => {
                     : 'border-transparent text-gray-600 hover:text-orange-500'
                 }`}
               >
-                {tab.label} ({tab.count})
+                {tab.label} ({getTabCount(tab.id)})
               </button>
             ))}
           </div>
@@ -217,9 +232,11 @@ const MovieSection = () => {
             {/* Load More Button */}
             {movies.length > 0 && (
               <div className="text-center mt-8">
-                <Button variant="outline" size="lg" className="px-8">
-                  Xem thêm phim
-                </Button>
+                <Link to="/search">
+                  <Button variant="outline" size="lg" className="px-8">
+                    Xem thêm phim
+                  </Button>
+                </Link>
               </div>
             )}
 
