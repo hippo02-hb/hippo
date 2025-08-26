@@ -27,88 +27,95 @@
 
 ## 2. PostgreSQL Tables cần tạo
 
-### Movie Model
-```javascript
-{
-  _id: ObjectId,
-  title: String,
-  poster: String,
-  rating: String, // T13, T16, T18, K
-  genre: String,
-  duration: Number, // phút
-  status: String, // "showing", "coming", "stopped"
-  trailer: String, // YouTube URL
-  description: String,
-  director: String,
-  cast: [String],
-  releaseDate: Date,
-  createdAt: Date,
-  updatedAt: Date
-}
+### Movies Table
+```sql
+CREATE TABLE movies (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    poster TEXT,
+    rating VARCHAR(10), -- T13, T16, T18, K
+    genre TEXT,
+    duration INTEGER, -- phút
+    status VARCHAR(20) DEFAULT 'coming', -- showing, coming, stopped
+    trailer TEXT, -- YouTube URL
+    description TEXT,
+    director VARCHAR(255),
+    cast TEXT[], -- Array of cast members
+    release_date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
-### Cinema Model
-```javascript
-{
-  _id: ObjectId,
-  name: String,
-  address: String,
-  province: String,
-  screens: [{
-    screenNumber: Number,
-    type: String, // "2D", "3D", "IMAX"
-    totalSeats: Number
-  }],
-  createdAt: Date
-}
+### Cinemas Table
+```sql
+CREATE TABLE cinemas (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    address TEXT,
+    province VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
-### Showtime Model
-```javascript
-{
-  _id: ObjectId,
-  movieId: ObjectId,
-  cinemaId: ObjectId,
-  screenNumber: Number,
-  date: Date,
-  time: String, // "10:00", "13:30"
-  price: Number,
-  availableSeats: Number,
-  bookedSeats: [String], // ["A1", "A2", "B5"]
-  createdAt: Date
-}
+### Screens Table
+```sql
+CREATE TABLE screens (
+    id SERIAL PRIMARY KEY,
+    cinema_id INTEGER REFERENCES cinemas(id),
+    screen_number INTEGER,
+    screen_type VARCHAR(20), -- 2D, 3D, IMAX
+    total_seats INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
-### Booking Model
-```javascript
-{
-  _id: ObjectId,
-  showtimeId: ObjectId,
-  customerName: String,
-  customerPhone: String,
-  customerEmail: String,
-  seats: [String], // ["A1", "A2"]
-  totalAmount: Number,
-  bookingCode: String, // Mã đặt vé
-  status: String, // "confirmed", "cancelled"
-  paymentMethod: String,
-  createdAt: Date
-}
+### Showtimes Table
+```sql
+CREATE TABLE showtimes (
+    id SERIAL PRIMARY KEY,
+    movie_id INTEGER REFERENCES movies(id),
+    cinema_id INTEGER REFERENCES cinemas(id),
+    screen_id INTEGER REFERENCES screens(id),
+    show_date DATE,
+    show_time TIME,
+    price DECIMAL(10,2),
+    available_seats INTEGER,
+    booked_seats TEXT[], -- Array of seat codes ["A1", "A2"]
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
-### News Model
-```javascript
-{
-  _id: ObjectId,
-  title: String,
-  summary: String,
-  content: String,
-  image: String,
-  category: String, // "news", "promotion"
-  publishDate: Date,
-  isActive: Boolean,
-  createdAt: Date
-}
+### Bookings Table
+```sql
+CREATE TABLE bookings (
+    id SERIAL PRIMARY KEY,
+    showtime_id INTEGER REFERENCES showtimes(id),
+    customer_name VARCHAR(255),
+    customer_phone VARCHAR(20),
+    customer_email VARCHAR(255),
+    seats TEXT[], -- Array of seat codes
+    total_amount DECIMAL(10,2),
+    booking_code VARCHAR(50) UNIQUE,
+    status VARCHAR(20) DEFAULT 'confirmed', -- confirmed, cancelled
+    payment_method VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### News Table
+```sql
+CREATE TABLE news (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(500) NOT NULL,
+    summary TEXT,
+    content TEXT,
+    image TEXT,
+    category VARCHAR(50), -- news, promotion
+    publish_date DATE,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
 ## 3. Mock Data cần thay thế
