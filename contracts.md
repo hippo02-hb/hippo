@@ -210,7 +210,8 @@ postgresql://neondb_owner:npg_ziGvUol6KN7C@ep-royal-cake-afq7xl9y-pooler.c-2.us-
 
 **Implementation Priority:**
 1. ✅ Frontend with mock data (DONE)
-2. 🔄 Backend models & basic CRUD APIs  
-3. 🔄 Frontend-Backend integration
-4. 🔄 Booking flow implementation
-5. 🔄 Testing & optimization
+2. 🔄 PostgreSQL setup & table creation
+3. 🔄 Backend models & basic CRUD APIs with SQLAlchemy
+4. 🔄 Frontend-Backend integration
+5. 🔄 Booking flow implementation
+6. 🔄 Testing & optimization
