@@ -144,7 +144,7 @@ postgresql://neondb_owner:npg_ziGvUol6KN7C@ep-royal-cake-afq7xl9y-pooler.c-2.us-
 - `mockNews` → API call tới `/api/news`
 - `mockHeroSlides` → Sử dụng top movies từ API
 
-## 4. Frontend Integration Changes
+## 5. Frontend Integration Changes
 
 ### BookingWidget.jsx
 - Thay thế mock data bằng API calls
