@@ -5,6 +5,9 @@ import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
 import BookingWidget from "./components/BookingWidget";
 import MovieSection from "./components/MovieSection";
+import PromoSection from "./components/PromoSection";
+import NewsSection from "./components/NewsSection";
+import Footer from "./components/Footer";
 
 const Home = () => {
   return (
@@ -13,6 +16,9 @@ const Home = () => {
       <HeroSection />
       <BookingWidget />
       <MovieSection />
+      <PromoSection />
+      <NewsSection />
+      <Footer />
     </div>
   );
 };
