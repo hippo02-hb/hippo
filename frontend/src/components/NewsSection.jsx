@@ -3,39 +3,21 @@ import { Calendar, ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { newsAPI, handleAPIError } from '../services/api';
 import ImageWithFallback from './ImageWithFallback';
+import { Link } from 'react-router-dom';
 
 const NewsCard = ({ news }) => {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
       <div className="relative overflow-hidden">
-        <ImageWithFallback
-          src={news.image}
-          alt={news.title}
-          label={news.title}
-          variant="news"
-          className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
-        />
+        <ImageWithFallback src={news.image} alt={news.title} label={news.title} variant="news" className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-70 transition-opacity duration-300" />
       </div>
       
       <div className="p-4">
-        <div className="flex items-center text-gray-500 text-sm mb-2">
-          <Calendar className="h-4 w-4 mr-2" />
-          {new Date(news.publish_date).toLocaleDateString('vi-VN')}
-        </div>
-        
-        <h3 className="font-bold text-lg mb-2 line-clamp-2 group-hover:text-orange-500 transition-colors">
-          {news.title}
-        </h3>
-        
-        <p className="text-gray-600 text-sm line-clamp-3 mb-4">
-          {news.summary}
-        </p>
-        
-        <Button variant="ghost" size="sm" className="text-orange-500 hover:text-orange-600 p-0">
-          Xem chi tiết
-          <ArrowRight className="h-4 w-4 ml-2" />
-        </Button>
+        <div className="flex items-center text-gray-500 text-sm mb-2"><Calendar className="h-4 w-4 mr-2" />{new Date(news.publish_date).toLocaleDateString('vi-VN')}</div>
+        <h3 className="font-bold text-lg mb-2 line-clamp-2 group-hover:text-orange-500 transition-colors">{news.title}</h3>
+        <p className="text-gray-600 text-sm line-clamp-3 mb-4">{news.summary}</p>
+        <Button variant="ghost" size="sm" className="text-orange-500 hover:text-orange-600 p-0">Xem chi tiết<ArrowRight className="h-4 w-4 ml-2" /></Button>
       </div>
     </div>
   );
@@ -46,22 +28,17 @@ const NewsSection = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    loadNews();
-  }, []);
+  useEffect(() => { loadNews(); }, []);
 
   const loadNews = async () => {
     try {
-      setLoading(true);
-      setError(null);
+      setLoading(true); setError(null);
       const response = await newsAPI.getAll();
       setNews(response.data);
     } catch (err) {
       setError(handleAPIError(err, 'Không thể tải tin tức'));
       console.error('Error loading news:', err);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   if (error) {
@@ -86,7 +63,9 @@ const NewsSection = () => {
             <div className="bg-orange-500 text-white px-4 py-2 rounded-l-lg font-bold text-lg">TIN TỨC & KHUYẾN MÃI</div>
             <div className="bg-gray-200 h-12 w-2"></div>
           </div>
-          <Button variant="outline" className="text-orange-500 border-orange-500 hover:bg-orange-50">Xem tất cả<ArrowRight className="h-4 w-4 ml-2" /></Button>
+          <Link to="/events">
+            <Button variant="outline" className="text-orange-500 border-orange-500 hover:bg-orange-50">Xem tất cả<ArrowRight className="h-4 w-4 ml-2" /></Button>
+          </Link>
         </div>
 
         {/* Loading State */}
@@ -109,7 +88,7 @@ const NewsSection = () => {
               <div className="bg-orange-500 text-white rounded-full p-4 mb-4"><Calendar className="h-8 w-8" /></div>
               <h3 className="text-lg font-bold mb-2 text-gray-800">Ưu Đãi Thành Viên G-Star</h3>
               <p className="text-gray-600 text-sm mb-4">Đăng ký ngay để nhận được các ưu đãi độc quyền</p>
-              <Button className="bg-orange-500 hover:bg-orange-600 text-white">Tham gia ngay</Button>
+              <Link to="/events"><Button className="bg-orange-500 hover:bg-orange-600 text-white">Tham gia ngay</Button></Link>
             </div>
           </div>
         )}

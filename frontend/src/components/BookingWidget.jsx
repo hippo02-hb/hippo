@@ -144,114 +144,116 @@ const BookingWidget = () => {
   };
 
   return (
-    <div className="bg-white shadow-lg rounded-lg mx-4 -mt-12 relative z-30 p-6">
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-        {/* Movie Selection */}
-        <div className="space-y-2">
-          <label className="flex items-center text-sm font-medium text-gray-600">
-            <Film className="h-4 w-4 mr-2 text-orange-500" />
-            <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs">1</span>
-            <span className="ml-2">Chọn Phim</span>
-          </label>
-          <Select value={selectedMovie} onValueChange={setSelectedMovie} disabled={loadingMovies}>
-            <SelectTrigger>
-              <SelectValue placeholder={loadingMovies ? "Đang tải..." : "Chọn phim muốn xem"} />
-            </SelectTrigger>
-            <SelectContent>
-              {movies.map((movie) => (
-                <SelectItem key={movie.id} value={movie.id.toString()}>
-                  {movie.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-12">
+      <div className="bg-white shadow-xl rounded-xl p-6 md:p-8 border border-gray-100">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+          {/* Movie Selection */}
+          <div className="space-y-2">
+            <label className="flex items-center text-sm font-medium text-gray-600">
+              <Film className="h-4 w-4 mr-2 text-orange-500" />
+              <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs">1</span>
+              <span className="ml-2">Chọn Phim</span>
+            </label>
+            <Select value={selectedMovie} onValueChange={setSelectedMovie} disabled={loadingMovies}>
+              <SelectTrigger>
+                <SelectValue placeholder={loadingMovies ? 'Đang tải...' : 'Chọn phim muốn xem'} />
+              </SelectTrigger>
+              <SelectContent>
+                {movies.map((movie) => (
+                  <SelectItem key={movie.id} value={movie.id.toString()}>
+                    {movie.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Cinema Selection */}
-        <div className="space-y-2">
-          <label className="flex items-center text-sm font-medium text-gray-600">
-            <MapPin className="h-4 w-4 mr-2 text-orange-500" />
-            <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs">2</span>
-            <span className="ml-2">Chọn Rạp</span>
-          </label>
-          <Select value={selectedCinema} onValueChange={setSelectedCinema} disabled={loadingCinemas}>
-            <SelectTrigger>
-              <SelectValue placeholder={loadingCinemas ? "Đang tải..." : "Chọn rạp chiếu"} />
-            </SelectTrigger>
-            <SelectContent>
-              {cinemas.map((cinema) => (
-                <SelectItem key={cinema.id} value={cinema.id.toString()}>
-                  {cinema.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+          {/* Cinema Selection */}
+          <div className="space-y-2">
+            <label className="flex items-center text-sm font-medium text-gray-600">
+              <MapPin className="h-4 w-4 mr-2 text-orange-500" />
+              <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs">2</span>
+              <span className="ml-2">Chọn Rạp</span>
+            </label>
+            <Select value={selectedCinema} onValueChange={setSelectedCinema} disabled={loadingCinemas}>
+              <SelectTrigger>
+                <SelectValue placeholder={loadingCinemas ? 'Đang tải...' : 'Chọn rạp chiếu'} />
+              </SelectTrigger>
+              <SelectContent>
+                {cinemas.map((cinema) => (
+                  <SelectItem key={cinema.id} value={cinema.id.toString()}>
+                    {cinema.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Date Selection */}
-        <div className="space-y-2">
-          <label className="flex items-center text-sm font-medium text-gray-600">
-            <Calendar className="h-4 w-4 mr-2 text-orange-500" />
-            <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs">3</span>
-            <span className="ml-2">Chọn Ngày</span>
-          </label>
-          <Select value={selectedDate} onValueChange={setSelectedDate} disabled={loadingDates || availableDates.length === 0}>
-            <SelectTrigger>
-              <SelectValue placeholder={
-                loadingDates ? "Đang tải..." : 
-                availableDates.length === 0 ? "Chọn phim/rạp trước" : 
-                "Chọn ngày xem"
-              } />
-            </SelectTrigger>
-            <SelectContent>
-              {availableDates.map((date) => (
-                <SelectItem key={date} value={date}>
-                  {formatDateForDisplay(date)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+          {/* Date Selection */}
+          <div className="space-y-2">
+            <label className="flex items-center text-sm font-medium text-gray-600">
+              <Calendar className="h-4 w-4 mr-2 text-orange-500" />
+              <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs">3</span>
+              <span className="ml-2">Chọn Ngày</span>
+            </label>
+            <Select value={selectedDate} onValueChange={setSelectedDate} disabled={loadingDates || availableDates.length === 0}>
+              <SelectTrigger>
+                <SelectValue placeholder={
+                  loadingDates ? 'Đang tải...' : 
+                  availableDates.length === 0 ? 'Chọn phim/rạp trước' : 
+                  'Chọn ngày xem'
+                } />
+              </SelectTrigger>
+              <SelectContent>
+                {availableDates.map((date) => (
+                  <SelectItem key={date} value={date}>
+                    {formatDateForDisplay(date)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Time Selection */}
-        <div className="space-y-2">
-          <label className="flex items-center text-sm font-medium text-gray-600">
-            <Clock className="h-4 w-4 mr-2 text-orange-500" />
-            <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs">4</span>
-            <span className="ml-2">Chọn Suất</span>
-          </label>
-          <Select value={selectedTime} onValueChange={setSelectedTime} disabled={loadingTimes || availableTimes.length === 0}>
-            <SelectTrigger>
-              <SelectValue placeholder={
-                loadingTimes ? "Đang tải..." :
-                availableTimes.length === 0 ? "Chọn ngày trước" :
-                "Chọn suất chiếu"
-              } />
-            </SelectTrigger>
-            <SelectContent>
-              {availableTimes.map((timeInfo) => (
-                <SelectItem key={timeInfo.time} value={timeInfo.time}>
-                  {formatTime(timeInfo.time)} ({timeInfo.available_seats} ghế trống)
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+          {/* Time Selection */}
+          <div className="space-y-2">
+            <label className="flex items-center text-sm font-medium text-gray-600">
+              <Clock className="h-4 w-4 mr-2 text-orange-500" />
+              <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs">4</span>
+              <span className="ml-2">Chọn Suất</span>
+            </label>
+            <Select value={selectedTime} onValueChange={setSelectedTime} disabled={loadingTimes || availableTimes.length === 0}>
+              <SelectTrigger>
+                <SelectValue placeholder={
+                  loadingTimes ? 'Đang tải...' :
+                  availableTimes.length === 0 ? 'Chọn ngày trước' :
+                  'Chọn suất chiếu'
+                } />
+              </SelectTrigger>
+              <SelectContent>
+                {availableTimes.map((timeInfo) => (
+                  <SelectItem key={timeInfo.time} value={timeInfo.time}>
+                    {formatTime(timeInfo.time)} ({timeInfo.available_seats} ghế trống)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Book Button */}
-        <div className="space-y-2">
-          <div className="h-6"></div>
-          <Button 
-            onClick={handleBooking}
-            size="lg" 
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold h-10"
-            disabled={!selectedMovie || !selectedCinema || !selectedDate || !selectedTime}
-          >
-            {loadingMovies || loadingCinemas || loadingDates || loadingTimes ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : null}
-            Mua vé nhanh
-          </Button>
+          {/* Book Button */}
+          <div className="space-y-2">
+            <div className="h-6"></div>
+            <Button 
+              onClick={handleBooking}
+              size="lg" 
+              className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold h-10 shadow"
+              disabled={!selectedMovie || !selectedCinema || !selectedDate || !selectedTime}
+            >
+              {(loadingMovies || loadingCinemas || loadingDates || loadingTimes) ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
+              Mua vé nhanh
+            </Button>
+          </div>
         </div>
       </div>
     </div>
