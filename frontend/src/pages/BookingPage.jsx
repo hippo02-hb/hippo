@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import SeatSelection from '../components/SeatSelection';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -25,18 +24,13 @@ const BookingPage = () => {
   const loadBookingData = async () => {
     try {
       setLoading(true);
-      
-      // Load showtime details
       const showtimeResponse = await showtimesAPI.getById(showtimeId);
       const showtimeData = showtimeResponse.data;
       setShowtime(showtimeData);
-      
-      // Load movie and cinema details
       const [movieResponse, cinemaResponse] = await Promise.all([
         moviesAPI.getById(showtimeData.movie_id),
         cinemasAPI.getById(showtimeData.cinema_id)
       ]);
-      
       setMovie(movieResponse.data);
       setCinema(cinemaResponse.data);
     } catch (error) {
@@ -53,11 +47,8 @@ const BookingPage = () => {
   };
 
   const handleBack = () => {
-    if (movie) {
-      navigate(`/movie/${movie.id}`);
-    } else {
-      navigate('/');
-    }
+    if (movie) navigate(`/movie/${movie.id}`);
+    else navigate('/');
   };
 
   if (loading) {
@@ -73,19 +64,14 @@ const BookingPage = () => {
     );
   }
 
-  // Combine data for SeatSelection component
-  const showtimeWithDetails = {
-    ...showtime,
-    movie,
-    cinema
-  };
+  const showtimeWithDetails = { ...showtime, movie, cinema };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
         <SeatSelection
           showtimeId={showtimeId}
-          showtime={showtimeWithDetails}
+          showtimeDetails={showtimeWithDetails}
           onBookingComplete={handleBookingComplete}
           onBack={handleBack}
         />
