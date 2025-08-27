@@ -168,11 +168,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Health endpoint (/api/health)"
-    - "Movies endpoints - list/get/create"
-    - "Cinemas endpoints - list/get/create"
-    - "News endpoints - list/get/create"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
