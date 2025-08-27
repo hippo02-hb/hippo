@@ -106,48 +106,60 @@ user_problem_statement: "Thiết lập dự án, cài dependencies, xác nhận 
 backend:
   - task: "Health endpoint (/api/health)"
     implemented: true
-    working: NA
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: NA
         agent: "main"
         comment: "Chuẩn bị kiểm tra health check để xác nhận dịch vụ chạy ổn định"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Health endpoint trả về status 200 với {status: 'healthy', service: 'galaxy-cinema-api'}. Endpoint hoạt động hoàn hảo."
   - task: "Movies endpoints - list/get/create"
     implemented: true
-    working: NA
+    working: true
     file: "/app/backend/routers/movies.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: NA
         agent: "main"
         comment: "Kiểm tra GET /api/movies/, POST /api/movies/, GET /api/movies/{id}"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Tất cả endpoints movies hoạt động tốt: GET /api/movies/ trả về danh sách 5 phim có sẵn, POST /api/movies/ tạo thành công phim mới (Avengers: Endgame), GET /api/movies/{id} lấy chi tiết phim chính xác. Database PostgreSQL kết nối ổn định."
   - task: "Cinemas endpoints - list/get/create"
     implemented: true
-    working: NA
+    working: true
     file: "/app/backend/routers/cinemas.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: NA
         agent: "main"
         comment: "Kiểm tra GET /api/cinemas/, POST /api/cinemas/, GET /api/cinemas/{id}"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Tất cả endpoints cinemas hoạt động tốt: GET /api/cinemas/ trả về danh sách 4 rạp có sẵn, POST /api/cinemas/ tạo thành công rạp mới (Galaxy Cinema Nguyen Trai), GET /api/cinemas/{id} lấy chi tiết rạp chính xác."
   - task: "News endpoints - list/get/create"
     implemented: true
-    working: NA
+    working: true
     file: "/app/backend/routers/news.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: NA
         agent: "main"
         comment: "Kiểm tra GET /api/news/, POST /api/news/, GET /api/news/{id}"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Tất cả endpoints news hoạt động tốt: GET /api/news/ trả về danh sách 2 tin tức có sẵn, POST /api/news/ tạo thành công tin tức mới (Galaxy Cinema Grand Opening Sale), GET /api/news/{id} lấy chi tiết tin tức chính xác."
 frontend: []
 metadata:
   created_by: "main_agent"
