@@ -160,6 +160,17 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ PASSED - Tất cả endpoints news hoạt động tốt: GET /api/news/ trả về danh sách 2 tin tức có sẵn, POST /api/news/ tạo thành công tin tức mới (Galaxy Cinema Grand Opening Sale), GET /api/news/{id} lấy chi tiết tin tức chính xác."
+  - task: "Bookings endpoints - create/getByCode/details/cancel"
+    implemented: true
+    working: NA
+    file: "/app/backend/routers/bookings.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: NA
+        agent: "main"
+        comment: "Kiểm tra luồng: chọn 1 showtime hợp lệ, POST /api/bookings/, sau đó GET /api/bookings/{id}/details và PATCH /api/bookings/{id}/cancel."
 frontend:
   - task: "Booking nhanh từ BookingWidget điều hướng tới trang đặt ghế"
     implemented: true
