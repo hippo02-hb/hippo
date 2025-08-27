@@ -160,7 +160,40 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ PASSED - Tất cả endpoints news hoạt động tốt: GET /api/news/ trả về danh sách 2 tin tức có sẵn, POST /api/news/ tạo thành công tin tức mới (Galaxy Cinema Grand Opening Sale), GET /api/news/{id} lấy chi tiết tin tức chính xác."
-frontend: []
+frontend:
+  - task: "Booking nhanh từ BookingWidget điều hướng tới trang đặt ghế"
+    implemented: true
+    working: NA
+    file: "/app/frontend/src/components/BookingWidget.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: NA
+        agent: "main"
+        comment: "Thay alert bằng điều hướng tới /booking/:showtimeId dựa trên showtimes/times/available."
+  - task: "Hủy vé trực tiếp từ trang xác nhận đặt vé"
+    implemented: true
+    working: NA
+    file: "/app/frontend/src/pages/BookingConfirmationPage.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: NA
+        agent: "main"
+        comment: "Thêm nút Hủy vé gọi PATCH /api/bookings/{id}/cancel, refresh lại chi tiết."
+  - task: "Trang Tra cứu vé theo mã đặt vé + liên kết trên Header"
+    implemented: true
+    working: NA
+    file: "/app/frontend/src/pages/BookingLookupPage.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: NA
+        agent: "main"
+        comment: "Tạo trang /lookup: nhập mã (GCxxxx), gọi GET /api/bookings/code/{code} rồi /api/bookings/{id}/details, cho phép hủy nếu confirmed. Cập nhật Header và App routes."
 metadata:
   created_by: "main_agent"
   version: "1.0"
