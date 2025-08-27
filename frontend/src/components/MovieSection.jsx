@@ -4,6 +4,7 @@ import { Star, Play, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { moviesAPI, handleAPIError } from '../services/api';
 import toast from 'react-hot-toast';
+import ImageWithFallback from './ImageWithFallback';
 
 const MovieCard = ({ movie }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -20,9 +21,11 @@ const MovieCard = ({ movie }) => {
     >
       <Link to={`/movie/${movie.id}`}>
         <div className="relative">
-          <img 
-            src={movie.poster} 
+          <ImageWithFallback 
+            src={movie.poster}
             alt={movie.title}
+            label={movie.title}
+            variant="poster"
             className="w-full h-80 object-cover"
           />
           
@@ -65,9 +68,9 @@ const MovieCard = ({ movie }) => {
           </h3>
           
           <div className="space-y-2 text-sm text-gray-600">
-            <p><span className="font-semibold">Thể loại:</span> {movie.genre}</p>
-            <p><span className="font-semibold">Thời lượng:</span> {movie.duration} phút</p>
-            <p><span className="font-semibold">Đạo diễn:</span> {movie.director}</p>
+            <p><span className="font-semibold">Thể loại:</span> {movie.genre || 'Đang cập nhật'}</p>
+            <p><span className="font-semibold">Thời lượng:</span> {movie.duration ? `${movie.duration} phút` : '—'}</p>
+            <p><span className="font-semibold">Đạo diễn:</span> {movie.director || '—'}</p>
           </div>
 
           <div className="mt-4 flex justify-between items-center">
@@ -83,7 +86,6 @@ const MovieCard = ({ movie }) => {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  // This will be handled by the link to movie detail page
                 }}
               >
                 Đặt vé
@@ -123,7 +125,6 @@ const MovieSection = () => {
           response = await moviesAPI.getComing();
           break;
         case 'imax':
-          // For now, just get all movies (can be enhanced later)
           response = await moviesAPI.getAll();
           break;
         case 'all':
@@ -132,7 +133,7 @@ const MovieSection = () => {
           break;
       }
       
-      setMovies(response.data);
+      setMovies(response.data || []);
     } catch (err) {
       const errorMessage = handleAPIError(err, 'Không thể tải danh sách phim');
       setError(errorMessage);
@@ -146,7 +147,6 @@ const MovieSection = () => {
     fetchMovies();
   }, [activeTab]);
 
-  // Update tab counts based on current movies
   const getTabCount = (tabId) => {
     switch (tabId) {
       case 'showing':
@@ -154,7 +154,7 @@ const MovieSection = () => {
       case 'coming':
         return movies.filter(m => m.status === 'coming').length;
       case 'imax':
-        return Math.min(3, movies.length); // Mock IMAX count
+        return Math.min(3, movies.length);
       case 'all':
         return movies.length;
       default:
@@ -188,9 +188,7 @@ const MovieSection = () => {
         {/* Section Header */}
         <div className="mb-8">
           <div className="flex items-center mb-6">
-            <div className="bg-orange-500 text-white px-4 py-2 rounded-l-lg font-bold text-lg">
-              PHIM
-            </div>
+            <div className="bg-orange-500 text-white px-4 py-2 rounded-l-lg font-bold text-lg">PHIM</div>
             <div className="bg-gray-200 h-12 w-2"></div>
           </div>
 
@@ -229,18 +227,14 @@ const MovieSection = () => {
               ))}
             </div>
 
-            {/* Load More Button */}
             {movies.length > 0 && (
               <div className="text-center mt-8">
                 <Link to="/search">
-                  <Button variant="outline" size="lg" className="px-8">
-                    Xem thêm phim
-                  </Button>
+                  <Button variant="outline" size="lg" className="px-8">Xem thêm phim</Button>
                 </Link>
               </div>
             )}
 
-            {/* No movies message */}
             {movies.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-500">Không có phim nào trong danh mục này.</p>

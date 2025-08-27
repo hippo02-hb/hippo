@@ -6,6 +6,7 @@ import { Card } from '../components/ui/card';
 import { moviesAPI, showtimesAPI, handleAPIError, formatPrice, formatTime } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import toast from 'react-hot-toast';
+import ImageWithFallback from '../components/ImageWithFallback';
 
 const MovieDetailPage = () => {
   const { id } = useParams();
@@ -79,11 +80,7 @@ const MovieDetailPage = () => {
     
     if (date.toDateString() === today.toDateString()) return 'Hôm nay';
     if (date.toDateString() === tomorrow.toDateString()) return 'Ngày mai';
-    return date.toLocaleDateString('vi-VN', { 
-      weekday: 'long',
-      day: '2-digit',
-      month: '2-digit'
-    });
+    return date.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit' });
   };
 
   if (loading) {
@@ -100,83 +97,57 @@ const MovieDetailPage = () => {
   }
 
   const groupedShowtimes = groupShowtimesByDateAndCinema();
+  const hasPoster = Boolean(movie.poster);
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <div className="relative h-[500px] bg-black">
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${movie.poster})` }}
-        >
-          <div className="absolute inset-0 bg-black bg-opacity-60" />
-        </div>
+        {hasPoster ? (
+          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${movie.poster})` }}>
+            <div className="absolute inset-0 bg-black bg-opacity-60" />
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-700">
+            <div className="absolute inset-0 bg-black bg-opacity-40" />
+          </div>
+        )}
         
         <div className="relative z-10 container mx-auto px-4 h-full flex items-center">
-          <Button
-            onClick={() => navigate('/')}
-            variant="ghost"
-            className="absolute top-4 left-4 text-white hover:bg-white/20"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay lại
+          <Button onClick={() => navigate('/')} variant="ghost" className="absolute top-4 left-4 text-white hover:bg-white/20">
+            <ArrowLeft className="h-4 w-4 mr-2" /> Quay lại
           </Button>
           
           <div className="flex flex-col md:flex-row items-start md:items-center space-y-6 md:space-y-0 md:space-x-8 mt-16">
-            <img
-              src={movie.poster}
-              alt={movie.title}
-              className="w-64 h-96 object-cover rounded-lg shadow-2xl"
-              onError={(e) => { e.currentTarget.style.opacity = 0; }}
-            />
+            <ImageWithFallback src={movie.poster} alt={movie.title} label={movie.title} variant="poster" className="w-64 h-96 object-cover rounded-lg shadow-2xl" />
             
             <div className="text-white flex-1">
               <div className="mb-2">
-                <span className="bg-orange-500 text-white px-3 py-1 rounded text-sm font-bold mr-2">
-                  {movie.rating || 'T13'}
-                </span>
+                <span className="bg-orange-500 text-white px-3 py-1 rounded text-sm font-bold mr-2">{movie.rating || 'T13'}</span>
                 <span className="text-orange-400">{movie.genre || 'Đang cập nhật'}</span>
               </div>
               
               <h1 className="text-4xl md:text-5xl font-bold mb-4">{movie.title}</h1>
               
               <div className="flex items-center space-x-6 mb-6">
-                <div className="flex items-center">
-                  <Clock className="h-5 w-5 mr-2" />
-                  <span>{movie.duration ? `${movie.duration} phút` : '—'}</span>
-                </div>
-                <div className="flex items-center">
-                  <Star className="h-5 w-5 mr-2 text-yellow-400 fill-current" />
-                  <span>8.5</span>
-                </div>
-                <div className="flex items-center">
-                  <Calendar className="h-5 w-5 mr-2" />
-                  <span>{movie.release_date ? new Date(movie.release_date).getFullYear() : '-'}</span>
-                </div>
+                <div className="flex items-center"><Clock className="h-5 w-5 mr-2" /><span>{movie.duration ? `${movie.duration} phút` : '—'}</span></div>
+                <div className="flex items-center"><Star className="h-5 w-5 mr-2 text-yellow-400 fill-current" /><span>8.5</span></div>
+                <div className="flex items-center"><Calendar className="h-5 w-5 mr-2" /><span>{movie.release_date ? new Date(movie.release_date).getFullYear() : '-'}</span></div>
               </div>
               
-              <p className="text-lg mb-6 leading-relaxed max-w-2xl">
-                {movie.description || '—'}
-              </p>
+              <p className="text-lg mb-6 leading-relaxed max-w-2xl">{movie.description || '—'}</p>
               
               <div className="flex space-x-4">
                 {movie.status === 'showing' && (
                   <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white" onClick={() => {
-                    // Nếu có suất chiếu, dẫn tới trang đặt vé của suất đầu tiên
                     const first = showtimes?.[0];
                     if (first?.id) navigate(`/booking/${first.id}`);
                   }}>
                     Đặt vé ngay
                   </Button>
                 )}
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={openTrailer}
-                  className="border-white text-white hover:bg-white hover:text-black"
-                >
-                  <Play className="h-5 w-5 mr-2" />
-                  Xem trailer
+                <Button variant="outline" size="lg" onClick={openTrailer} className="border-white text-white hover:bg-white hover:text-black">
+                  <Play className="h-5 w-5 mr-2" /> Trailer
                 </Button>
               </div>
             </div>
@@ -192,29 +163,13 @@ const MovieDetailPage = () => {
             <Card className="p-6 mb-6">
               <h2 className="text-2xl font-bold mb-4">Thông tin phim</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-semibold text-gray-600">Đạo diễn</h3>
-                  <p>{movie.director || '—'}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-600">Thể loại</h3>
-                  <p>{movie.genre || '—'}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-600">Thời lượng</h3>
-                  <p>{movie.duration ? `${movie.duration} phút` : '—'}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-600">Ngày khởi chiếu</h3>
-                  <p>{movie.release_date ? new Date(movie.release_date).toLocaleDateString('vi-VN') : '—'}</p>
-                </div>
+                <div><h3 className="font-semibold text-gray-600">Đạo diễn</h3><p>{movie.director || '—'}</p></div>
+                <div><h3 className="font-semibold text-gray-600">Thể loại</h3><p>{movie.genre || '—'}</p></div>
+                <div><h3 className="font-semibold text-gray-600">Thời lượng</h3><p>{movie.duration ? `${movie.duration} phút` : '—'}</p></div>
+                <div><h3 className="font-semibold text-gray-600">Ngày khởi chiếu</h3><p>{movie.release_date ? new Date(movie.release_date).toLocaleDateString('vi-VN') : '—'}</p></div>
               </div>
-              
               {movie.cast && movie.cast.length > 0 && (
-                <div className="mt-4">
-                  <h3 className="font-semibold text-gray-600 mb-2">Diễn viên</h3>
-                  <p>{movie.cast.join(', ')}</p>
-                </div>
+                <div className="mt-4"><h3 className="font-semibold text-gray-600 mb-2">Diễn viên</h3><p>{movie.cast.join(', ')}</p></div>
               )}
             </Card>
 
@@ -222,52 +177,26 @@ const MovieDetailPage = () => {
             {movie.status === 'showing' && (
               <Card className="p-6">
                 <h2 className="text-2xl font-bold mb-4">Lịch chiếu</h2>
-                
                 {showtimesLoading ? (
-                  <div className="text-center py-8">
-                    <LoadingSpinner message="Đang tải lịch chiếu..." />
-                  </div>
+                  <div className="text-center py-8"><LoadingSpinner message="Đang tải lịch chiếu..." /></div>
                 ) : Object.keys(groupedShowtimes).length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">
-                    Hiện tại chưa có lịch chiếu cho phim này
-                  </p>
+                  <p className="text-gray-500 text-center py-8">Hiện tại chưa có lịch chiếu cho phim này</p>
                 ) : (
                   <div className="space-y-6">
                     {Object.entries(groupedShowtimes).map(([date, cinemas]) => (
                       <div key={date}>
-                        <h3 className="text-lg font-semibold mb-3 text-orange-600">
-                          {formatDate(date)}
-                        </h3>
-                        
+                        <h3 className="text-lg font-semibold mb-3 text-orange-600">{formatDate(date)}</h3>
                         <div className="space-y-4">
                           {Object.entries(cinemas).map(([cinemaName, times]) => (
                             <div key={cinemaName} className="border rounded-lg p-4">
-                              <div className="flex items-center mb-3">
-                                <MapPin className="h-5 w-5 mr-2 text-gray-500" />
-                                <h4 className="font-medium">{cinemaName}</h4>
-                              </div>
-                              
+                              <div className="flex items-center mb-3"><MapPin className="h-5 w-5 mr-2 text-gray-500" /><h4 className="font-medium">{cinemaName}</h4></div>
                               <div className="flex flex-wrap gap-2">
                                 {times.map((showtime) => (
-                                  <Button
-                                    key={showtime.id}
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleBooking(showtime.id)}
-                                    className="min-w-[80px] hover:bg-orange-50 hover:border-orange-500"
-                                    disabled={showtime.available_seats === 0}
-                                  >
+                                  <Button key={showtime.id} variant="outline" size="sm" onClick={() => handleBooking(showtime.id)} className="min-w-[80px] hover:bg-orange-50 hover:border-orange-500" disabled={showtime.available_seats === 0}>
                                     <div className="text-center">
-                                      <div className="font-medium">
-                                        {formatTime(showtime.show_time)}
-                                      </div>
-                                      <div className="text-xs text-gray-500">
-                                        {formatPrice(showtime.price)}
-                                      </div>
-                                      <div className="text-xs text-gray-400 flex items-center">
-                                        <Users className="h-3 w-3 mr-1" />
-                                        {showtime.available_seats}
-                                      </div>
+                                      <div className="font-medium">{formatTime(showtime.show_time)}</div>
+                                      <div className="text-xs text-gray-500">{formatPrice(showtime.price)}</div>
+                                      <div className="text-xs text-gray-400 flex items-center"><Users className="h-3 w-3 mr-1" />{showtime.available_seats}</div>
                                     </div>
                                   </Button>
                                 ))}
@@ -288,39 +217,18 @@ const MovieDetailPage = () => {
             {movie.status === 'coming' && (
               <Card className="p-6 mb-6 bg-blue-50">
                 <h3 className="text-lg font-bold mb-2 text-blue-800">Sắp chiếu</h3>
-                <p className="text-blue-600 mb-4">
-                  Phim sẽ được khởi chiếu vào {movie.release_date ? new Date(movie.release_date).toLocaleDateString('vi-VN') : '—'}
-                </p>
-                <Button variant="outline" className="w-full border-blue-500 text-blue-600 hover:bg-blue-50">
-                  Đặt trước
-                </Button>
+                <p className="text-blue-600 mb-4">Phim sẽ được khởi chiếu vào {movie.release_date ? new Date(movie.release_date).toLocaleDateString('vi-VN') : '—'}</p>
+                <Button variant="outline" className="w-full border-blue-500 text-blue-600 hover:bg-blue-50">Đặt trước</Button>
               </Card>
             )}
 
-            {/* Quick Book Widget */}
             <Card className="p-6">
               <h3 className="text-lg font-bold mb-4">Đặt vé nhanh</h3>
-              <p className="text-gray-600 mb-4">
-                Chọn suất chiếu phù hợp và đặt vé ngay!
-              </p>
+              <p className="text-gray-600 mb-4">Chọn suất chiếu phù hợp và đặt vé ngay!</p>
               <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Giá vé từ:</span>
-                  <span className="font-semibold text-orange-600">
-                    {formatPrice(80000)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Thời lượng:</span>
-                  <span>{movie.duration ? `${movie.duration} phút` : '—'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Đánh giá:</span>
-                  <div className="flex items-center">
-                    <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                    <span>8.5/10</span>
-                  </div>
-                </div>
+                <div className="flex justify-between"><span>Giá vé từ:</span><span className="font-semibold text-orange-600">{formatPrice(80000)}</span></div>
+                <div className="flex justify-between"><span>Thời lượng:</span><span>{movie.duration ? `${movie.duration} phút` : '—'}</span></div>
+                <div className="flex justify-between"><span>Đánh giá:</span><div className="flex items-center"><Star className="h-4 w-4 text-yellow-400 fill-current mr-1" /><span>8.5/10</span></div></div>
               </div>
             </Card>
           </div>
