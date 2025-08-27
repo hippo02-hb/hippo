@@ -14,6 +14,10 @@ import BookingPage from "./pages/BookingPage";
 import BookingConfirmationPage from "./pages/BookingConfirmationPage";
 import SearchPage from "./pages/SearchPage";
 import BookingLookupPage from "./pages/BookingLookupPage";
+import ProductsPage from "./pages/ProductsPage";
+import CinemaCornerPage from "./pages/CinemaCornerPage";
+import EventsPage from "./pages/EventsPage";
+import CinemasPricingPage from "./pages/CinemasPricingPage";
 
 function App() {
   return (
@@ -30,6 +34,10 @@ function App() {
               <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmationPage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/lookup" element={<BookingLookupPage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/cinema-corner" element={<CinemaCornerPage />} />
+              <Route path="/events" element={<EventsPage />} />
+              <Route path="/cinemas-pricing" element={<CinemasPricingPage />} />
             </Routes>
           </main>
           

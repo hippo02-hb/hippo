@@ -13,10 +13,10 @@ const Header = () => {
     { name: 'Mua Vé', href: '/', active: true },
     { name: 'Phim', href: '/search?status=showing' },
     { name: 'Tra Cứu Vé', href: '/lookup' },
-    { name: 'Sân Phẩm', href: '#' },
-    { name: 'Góc Điện Ảnh', href: '#' },
-    { name: 'Sự Kiện', href: '#' },
-    { name: 'Rạp/Giá Vé', href: '#' }
+    { name: 'Sản Phẩm', href: '/products' },
+    { name: 'Góc Điện Ảnh', href: '/cinema-corner' },
+    { name: 'Sự Kiện', href: '/events' },
+    { name: 'Rạp/Giá Vé', href: '/cinemas-pricing' }
   ];
 
   const handleSearch = (e) => {
