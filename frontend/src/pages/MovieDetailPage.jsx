@@ -40,7 +40,7 @@ const MovieDetailPage = () => {
     try {
       setShowtimesLoading(true);
       const response = await showtimesAPI.getAll({ movie_id: id });
-      setShowtimes(response.data);
+      setShowtimes(response.data || []);
     } catch (error) {
       toast.error('Không thể tải lịch chiếu');
     } finally {
@@ -60,42 +60,30 @@ const MovieDetailPage = () => {
 
   const groupShowtimesByDateAndCinema = () => {
     const grouped = {};
-    
-    showtimes.forEach(showtime => {
+    (showtimes || []).forEach((showtime) => {
       const date = showtime.show_date;
       const cinema = showtime.cinema_name;
-      
-      if (!grouped[date]) {
-        grouped[date] = {};
-      }
-      
-      if (!grouped[date][cinema]) {
-        grouped[date][cinema] = [];
-      }
-      
+      if (!grouped[date]) grouped[date] = {};
+      if (!grouped[date][cinema]) grouped[date][cinema] = [];
       grouped[date][cinema].push(showtime);
     });
-    
     return grouped;
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
-    if (date.toDateString() === today.toDateString()) {
-      return 'Hôm nay';
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Ngày mai';
-    } else {
-      return date.toLocaleDateString('vi-VN', { 
-        weekday: 'long',
-        day: '2-digit',
-        month: '2-digit'
-      });
-    }
+    if (date.toDateString() === today.toDateString()) return 'Hôm nay';
+    if (date.toDateString() === tomorrow.toDateString()) return 'Ngày mai';
+    return date.toLocaleDateString('vi-VN', { 
+      weekday: 'long',
+      day: '2-digit',
+      month: '2-digit'
+    });
   };
 
   if (loading) {
@@ -139,14 +127,15 @@ const MovieDetailPage = () => {
               src={movie.poster}
               alt={movie.title}
               className="w-64 h-96 object-cover rounded-lg shadow-2xl"
+              onError={(e) => { e.currentTarget.style.opacity = 0; }}
             />
             
             <div className="text-white flex-1">
               <div className="mb-2">
                 <span className="bg-orange-500 text-white px-3 py-1 rounded text-sm font-bold mr-2">
-                  {movie.rating}
+                  {movie.rating || 'T13'}
                 </span>
-                <span className="text-orange-400">{movie.genre}</span>
+                <span className="text-orange-400">{movie.genre || 'Đang cập nhật'}</span>
               </div>
               
               <h1 className="text-4xl md:text-5xl font-bold mb-4">{movie.title}</h1>
@@ -154,7 +143,7 @@ const MovieDetailPage = () => {
               <div className="flex items-center space-x-6 mb-6">
                 <div className="flex items-center">
                   <Clock className="h-5 w-5 mr-2" />
-                  <span>{movie.duration} phút</span>
+                  <span>{movie.duration ? `${movie.duration} phút` : '—'}</span>
                 </div>
                 <div className="flex items-center">
                   <Star className="h-5 w-5 mr-2 text-yellow-400 fill-current" />
@@ -162,17 +151,21 @@ const MovieDetailPage = () => {
                 </div>
                 <div className="flex items-center">
                   <Calendar className="h-5 w-5 mr-2" />
-                  <span>{new Date(movie.release_date).getFullYear()}</span>
+                  <span>{movie.release_date ? new Date(movie.release_date).getFullYear() : '-'}</span>
                 </div>
               </div>
               
               <p className="text-lg mb-6 leading-relaxed max-w-2xl">
-                {movie.description}
+                {movie.description || '—'}
               </p>
               
               <div className="flex space-x-4">
                 {movie.status === 'showing' && (
-                  <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white">
+                  <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white" onClick={() => {
+                    // Nếu có suất chiếu, dẫn tới trang đặt vé của suất đầu tiên
+                    const first = showtimes?.[0];
+                    if (first?.id) navigate(`/booking/${first.id}`);
+                  }}>
                     Đặt vé ngay
                   </Button>
                 )}
@@ -201,19 +194,19 @@ const MovieDetailPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <h3 className="font-semibold text-gray-600">Đạo diễn</h3>
-                  <p>{movie.director}</p>
+                  <p>{movie.director || '—'}</p>
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-600">Thể loại</h3>
-                  <p>{movie.genre}</p>
+                  <p>{movie.genre || '—'}</p>
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-600">Thời lượng</h3>
-                  <p>{movie.duration} phút</p>
+                  <p>{movie.duration ? `${movie.duration} phút` : '—'}</p>
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-600">Ngày khởi chiếu</h3>
-                  <p>{new Date(movie.release_date).toLocaleDateString('vi-VN')}</p>
+                  <p>{movie.release_date ? new Date(movie.release_date).toLocaleDateString('vi-VN') : '—'}</p>
                 </div>
               </div>
               
@@ -296,7 +289,7 @@ const MovieDetailPage = () => {
               <Card className="p-6 mb-6 bg-blue-50">
                 <h3 className="text-lg font-bold mb-2 text-blue-800">Sắp chiếu</h3>
                 <p className="text-blue-600 mb-4">
-                  Phim sẽ được khởi chiếu vào {new Date(movie.release_date).toLocaleDateString('vi-VN')}
+                  Phim sẽ được khởi chiếu vào {movie.release_date ? new Date(movie.release_date).toLocaleDateString('vi-VN') : '—'}
                 </p>
                 <Button variant="outline" className="w-full border-blue-500 text-blue-600 hover:bg-blue-50">
                   Đặt trước
@@ -319,7 +312,7 @@ const MovieDetailPage = () => {
                 </div>
                 <div className="flex justify-between">
                   <span>Thời lượng:</span>
-                  <span>{movie.duration} phút</span>
+                  <span>{movie.duration ? `${movie.duration} phút` : '—'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Đánh giá:</span>

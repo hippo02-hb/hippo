@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, Filter, X, Calendar, MapPin } from 'lucide-react';
+import { Search, Filter, X } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card } from '../components/ui/card';
@@ -23,13 +23,14 @@ const MovieCard = ({ movie }) => {
           src={movie.poster}
           alt={movie.title}
           className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={(e) => { e.currentTarget.style.opacity = 0; }}
         />
         <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
-          {movie.rating}
+          {movie.rating || 'T13'}
         </div>
         <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold ${
-          movie.status === 'showing' 
-            ? 'bg-green-500 text-white' 
+          movie.status === 'showing'
+            ? 'bg-green-500 text-white'
             : 'bg-blue-500 text-white'
         }`}>
           {movie.status === 'showing' ? 'Đang chiếu' : 'Sắp chiếu'}
@@ -41,8 +42,8 @@ const MovieCard = ({ movie }) => {
           {movie.title}
         </h3>
         <div className="space-y-1 text-sm text-gray-600">
-          <p><span className="font-semibold">Thể loại:</span> {movie.genre}</p>
-          <p><span className="font-semibold">Thời lượng:</span> {movie.duration} phút</p>
+          <p><span className="font-semibold">Thể loại:</span> {movie.genre || 'Đang cập nhật'}</p>
+          <p><span className="font-semibold">Thời lượng:</span> {movie.duration ? `${movie.duration} phút` : '—'}</p>
         </div>
         <div className="mt-4 flex justify-between items-center">
           <div className="flex items-center">
@@ -85,7 +86,7 @@ const SearchPage = () => {
     try {
       setLoading(true);
       const response = await moviesAPI.getAll();
-      setMovies(response.data);
+      setMovies(response.data || []);
     } catch (error) {
       toast.error(handleAPIError(error, 'Không thể tải danh sách phim'));
     } finally {
@@ -96,7 +97,7 @@ const SearchPage = () => {
   const loadCinemas = async () => {
     try {
       const response = await cinemasAPI.getAll();
-      setCinemas(response.data);
+      setCinemas(response.data || []);
     } catch (error) {
       console.error('Error loading cinemas:', error);
     }
@@ -113,21 +114,26 @@ const SearchPage = () => {
         response = await moviesAPI.getAll();
       }
       
-      let filteredMovies = response.data;
+      let filteredMovies = response.data || [];
       
-      // Client-side filtering for search query and genre
-      if (filters.query) {
-        const query = filters.query.toLowerCase();
-        filteredMovies = filteredMovies.filter(movie =>
-          movie.title.toLowerCase().includes(query) ||
-          movie.genre.toLowerCase().includes(query) ||
-          movie.director.toLowerCase().includes(query)
-        );
+      // Client-side filtering for search query and genre (null-safe)
+      const q = (filters.query || '').toLowerCase();
+      if (q) {
+        filteredMovies = filteredMovies.filter((movie) => {
+          const title = (movie.title || '').toLowerCase();
+          const genre = (movie.genre || '').toLowerCase();
+          const director = (movie.director || '').toLowerCase();
+          return (
+            title.includes(q) ||
+            genre.includes(q) ||
+            director.includes(q)
+          );
+        });
       }
       
       if (filters.genre) {
-        filteredMovies = filteredMovies.filter(movie =>
-          movie.genre.toLowerCase().includes(filters.genre.toLowerCase())
+        filteredMovies = filteredMovies.filter((movie) =>
+          (movie.genre || '').toLowerCase().includes(filters.genre.toLowerCase())
         );
       }
       
@@ -149,7 +155,7 @@ const SearchPage = () => {
   };
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       [key]: value
     }));
