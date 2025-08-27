@@ -101,3 +101,70 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Thiết lập dự án, cài dependencies, xác nhận backend hoạt động và kiểm tra nhanh các API cốt lõi trước khi nhận yêu cầu tiếp theo từ người dùng"
+backend:
+  - task: "Health endpoint (/api/health)"
+    implemented: true
+    working: NA
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: NA
+        agent: "main"
+        comment: "Chuẩn bị kiểm tra health check để xác nhận dịch vụ chạy ổn định"
+  - task: "Movies endpoints - list/get/create"
+    implemented: true
+    working: NA
+    file: "/app/backend/routers/movies.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: NA
+        agent: "main"
+        comment: "Kiểm tra GET /api/movies/, POST /api/movies/, GET /api/movies/{id}"
+  - task: "Cinemas endpoints - list/get/create"
+    implemented: true
+    working: NA
+    file: "/app/backend/routers/cinemas.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: NA
+        agent: "main"
+        comment: "Kiểm tra GET /api/cinemas/, POST /api/cinemas/, GET /api/cinemas/{id}"
+  - task: "News endpoints - list/get/create"
+    implemented: true
+    working: NA
+    file: "/app/backend/routers/news.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: NA
+        agent: "main"
+        comment: "Kiểm tra GET /api/news/, POST /api/news/, GET /api/news/{id}"
+frontend: []
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Health endpoint (/api/health)"
+    - "Movies endpoints - list/get/create"
+    - "Cinemas endpoints - list/get/create"
+    - "News endpoints - list/get/create"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Đã cài bổ sung backend deps (SQLAlchemy, psycopg2-binary), xác nhận services đang RUNNING qua supervisor. Yêu cầu testing agent kiểm tra các API theo test_plan. Base URL backend: sử dụng REACT_APP_BACKEND_URL từ frontend/.env và thêm prefix /api."
