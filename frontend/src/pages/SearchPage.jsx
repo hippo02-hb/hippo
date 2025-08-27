@@ -66,16 +66,23 @@ const SearchPage = () => {
   const [movies, setMovies] = useState([]);
   const [cinemas, setCinemas] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Read initial params with defaults
+  const spStatus = searchParams.get('status') || 'all';
+  const spGenre = searchParams.get('genre') || 'all';
+  const spCinema = searchParams.get('cinema') || 'all';
+  const spQuery = searchParams.get('q') || '';
+
   const [filters, setFilters] = useState({
-    query: searchParams.get('q') || '',
-    status: searchParams.get('status') || '',
-    genre: searchParams.get('genre') || '',
-    cinema: searchParams.get('cinema') || ''
+    query: spQuery,
+    status: ['showing', 'coming'].includes(spStatus) ? spStatus : 'all',
+    genre: spGenre || 'all',
+    cinema: spCinema || 'all'
   });
 
   useEffect(() => {
     loadCinemas();
-    if (filters.query || filters.status || filters.genre || filters.cinema) {
+    if (filters.query || filters.status !== 'all' || filters.genre !== 'all' || filters.cinema !== 'all') {
       searchMovies();
     } else {
       loadAllMovies();
@@ -108,7 +115,7 @@ const SearchPage = () => {
       setLoading(true);
       let response;
       
-      if (filters.status) {
+      if (filters.status && filters.status !== 'all') {
         response = await moviesAPI.getAll(filters.status);
       } else {
         response = await moviesAPI.getAll();
@@ -131,20 +138,22 @@ const SearchPage = () => {
         });
       }
       
-      if (filters.genre) {
+      if (filters.genre && filters.genre !== 'all') {
         filteredMovies = filteredMovies.filter((movie) =>
           (movie.genre || '').toLowerCase().includes(filters.genre.toLowerCase())
         );
       }
       
+      // TODO: cinema filter can be applied when movies-by-cinema relationship is available
+
       setMovies(filteredMovies);
       
       // Update URL params
       const params = new URLSearchParams();
       if (filters.query) params.set('q', filters.query);
-      if (filters.status) params.set('status', filters.status);
-      if (filters.genre) params.set('genre', filters.genre);
-      if (filters.cinema) params.set('cinema', filters.cinema);
+      if (filters.status && filters.status !== 'all') params.set('status', filters.status);
+      if (filters.genre && filters.genre !== 'all') params.set('genre', filters.genre);
+      if (filters.cinema && filters.cinema !== 'all') params.set('cinema', filters.cinema);
       setSearchParams(params);
       
     } catch (error) {
@@ -169,9 +178,9 @@ const SearchPage = () => {
   const clearFilters = () => {
     setFilters({
       query: '',
-      status: '',
-      genre: '',
-      cinema: ''
+      status: 'all',
+      genre: 'all',
+      cinema: 'all'
     });
     setSearchParams({});
     loadAllMovies();
@@ -182,7 +191,12 @@ const SearchPage = () => {
     'Drama', 'Hình Sự', 'Thriller', 'Kinh Dị', 'Hài', 'Lãng Mạn'
   ];
 
-  const hasActiveFilters = filters.query || filters.status || filters.genre || filters.cinema;
+  const hasActiveFilters = Boolean(
+    filters.query ||
+    (filters.status && filters.status !== 'all') ||
+    (filters.genre && filters.genre !== 'all') ||
+    (filters.cinema && filters.cinema !== 'all')
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -239,7 +253,7 @@ const SearchPage = () => {
                     <SelectValue placeholder="Tất cả" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tất cả</SelectItem>
+                    <SelectItem value="all">Tất cả</SelectItem>
                     <SelectItem value="showing">Đang chiếu</SelectItem>
                     <SelectItem value="coming">Sắp chiếu</SelectItem>
                   </SelectContent>
@@ -253,7 +267,7 @@ const SearchPage = () => {
                     <SelectValue placeholder="Tất cả" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tất cả</SelectItem>
+                    <SelectItem value="all">Tất cả</SelectItem>
                     {genres.map((genre) => (
                       <SelectItem key={genre} value={genre}>
                         {genre}
@@ -270,7 +284,7 @@ const SearchPage = () => {
                     <SelectValue placeholder="Tất cả" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tất cả</SelectItem>
+                    <SelectItem value="all">Tất cả</SelectItem>
                     {cinemas.map((cinema) => (
                       <SelectItem key={cinema.id} value={cinema.id.toString()}>
                         {cinema.name}
