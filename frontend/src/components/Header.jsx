@@ -12,6 +12,7 @@ const Header = () => {
   const navItems = [
     { name: 'Mua Vé', href: '/', active: true },
     { name: 'Phim', href: '/search?status=showing' },
+    { name: 'Tra Cứu Vé', href: '/lookup' },
     { name: 'Sân Phẩm', href: '#' },
     { name: 'Góc Điện Ảnh', href: '#' },
     { name: 'Sự Kiện', href: '#' },

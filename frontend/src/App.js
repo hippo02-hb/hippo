@@ -13,6 +13,7 @@ import MovieDetailPage from "./pages/MovieDetailPage";
 import BookingPage from "./pages/BookingPage";
 import BookingConfirmationPage from "./pages/BookingConfirmationPage";
 import SearchPage from "./pages/SearchPage";
+import BookingLookupPage from "./pages/BookingLookupPage";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
               <Route path="/booking/:showtimeId" element={<BookingPage />} />
               <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmationPage />} />
               <Route path="/search" element={<SearchPage />} />
+              <Route path="/lookup" element={<BookingLookupPage />} />
             </Routes>
           </main>
           
