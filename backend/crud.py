@@ -1,10 +1,11 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_
-from models import Movie, Cinema, Screen, Showtime, Booking, News
-from schemas import MovieCreate, CinemaCreate, ShowtimeCreate, BookingCreate, NewsCreate
+from sqlalchemy import and_, or_, func, extract
+from models import Movie, Cinema, Screen, Showtime, Booking, News, User, UserBooking
+from schemas import MovieCreate, CinemaCreate, ShowtimeCreate, BookingCreate, NewsCreate, UserCreate, UserUpdate
 from typing import Optional, List
 from datetime import date, datetime
 import uuid
+from auth import get_password_hash
 
 # Movie CRUD
 def get_movies(db: Session, status: Optional[str] = None, skip: int = 0, limit: int = 100):
