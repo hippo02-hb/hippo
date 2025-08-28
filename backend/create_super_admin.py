@@ -8,7 +8,7 @@ import sys
 import os
 from database import SessionLocal, create_tables
 from models import User, UserRole
-from auth import get_password_hash
+import crud
 
 def create_super_admin():
     """Create super admin user"""
@@ -31,7 +31,7 @@ def create_super_admin():
         
         super_admin = User(
             email=super_admin_email,
-            hashed_password=get_password_hash(super_admin_password),
+            hashed_password=crud.get_password_hash(super_admin_password),
             full_name="Galaxy Cinema Super Admin",
             phone="1900224466",
             role=UserRole.SUPER_ADMIN,
