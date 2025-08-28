@@ -113,13 +113,14 @@ class BookingBase(BaseModel):
     payment_method: Optional[str] = "cash"
 
 class BookingCreate(BookingBase):
-    pass
+    user_id: Optional[int] = None  # Optional for logged-in users
 
 class Booking(BookingBase):
     id: int
     booking_code: str
     status: str
     created_at: datetime
+    user_id: Optional[int] = None
     
     class Config:
         from_attributes = True
