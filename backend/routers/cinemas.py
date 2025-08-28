@@ -36,6 +36,6 @@ def get_cinema_screens(cinema_id: int, db: Session = Depends(get_db)):
     return screens
 
 @router.post("/", response_model=schemas.Cinema)
-def create_cinema(cinema: schemas.CinemaCreate, db: Session = Depends(get_db)):
+def create_cinema(cinema: schemas.CinemaCreate, db: Session = Depends(get_db), current_user = Depends(get_admin_user)):
     """Create new cinema (Admin only)"""
     return crud.create_cinema(db=db, cinema=cinema)
