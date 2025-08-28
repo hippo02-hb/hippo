@@ -5,6 +5,7 @@ from datetime import date
 from database import get_db
 import crud
 import schemas
+from auth import get_admin_user
 
 router = APIRouter(prefix="/showtimes", tags=["showtimes"])
 
