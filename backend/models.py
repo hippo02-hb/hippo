@@ -78,6 +78,7 @@ class Booking(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     showtime_id = Column(Integer, ForeignKey("showtimes.id"))
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Optional - for registered users
     customer_name = Column(String(255))
     customer_phone = Column(String(20))
     customer_email = Column(String(255))
@@ -90,6 +91,7 @@ class Booking(Base):
     
     # Relationships
     showtime = relationship("Showtime", back_populates="bookings")
+    user = relationship("User", foreign_keys=[user_id])
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
