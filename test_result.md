@@ -212,7 +212,8 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Bookings endpoints - create/getByCode/details/cancel"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -222,3 +223,5 @@ agent_communication:
     message: "Đã cài bổ sung backend deps (SQLAlchemy, psycopg2-binary), xác nhận services đang RUNNING qua supervisor. Yêu cầu testing agent kiểm tra các API theo test_plan. Base URL backend: sử dụng REACT_APP_BACKEND_URL từ frontend/.env và thêm prefix /api."
   - agent: "testing"
     message: "✅ HOÀN THÀNH TESTING BACKEND - Đã test thành công tất cả 10 endpoints theo yêu cầu. Sử dụng base URL từ REACT_APP_BACKEND_URL (https://project-progress-8.preview.emergentagent.com/api). Kết quả: Health endpoint (200 OK), Movies CRUD (list/create/get), Cinemas CRUD (list/create/get), News CRUD (list/create/get) - tất cả hoạt động hoàn hảo. Database PostgreSQL kết nối ổn định, có dữ liệu seed sẵn. Backend API sẵn sàng cho production."
+  - agent: "main"
+    message: "Tiếp tục hoàn thiện ứng dụng theo yêu cầu người dùng. Hiện tại cần test booking endpoints và frontend booking flow. User yêu cầu hoàn thiện mọi thứ trước, để payment integration sau cùng. Services đã restart thành công, sẵn sàng test booking functionality."
