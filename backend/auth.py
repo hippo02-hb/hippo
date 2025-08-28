@@ -82,7 +82,8 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
     
-    user = crud.get_user(db, user_id=user_id)
+    from models import User  # Import here to avoid circular import
+    user = db.query(User).filter(User.id == user_id).first()
     if user is None:
         raise credentials_exception
     return user
