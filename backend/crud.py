@@ -212,3 +212,109 @@ def get_available_times(db: Session, movie_id: int, cinema_id: int, show_date: d
             Showtime.available_seats > 0
         )
     ).order_by(Showtime.show_time).all()
+
+# User CRUD
+def get_user(db: Session, user_id: int):
+    return db.query(User).filter(User.id == user_id).first()
+
+def get_user_by_email(db: Session, email: str):
+    return db.query(User).filter(User.email == email).first()
+
+def get_users(db: Session, skip: int = 0, limit: int = 100, role: Optional[str] = None):
+    query = db.query(User)
+    if role:
+        query = query.filter(User.role == role)
+    return query.offset(skip).limit(limit).all()
+
+def create_user(db: Session, user: UserCreate):
+    hashed_password = get_password_hash(user.password)
+    db_user = User(
+        email=user.email,
+        hashed_password=hashed_password,
+        full_name=user.full_name,
+        phone=user.phone,
+        role=user.role
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+def update_user(db: Session, user_id: int, user_update: UserUpdate):
+    db_user = get_user(db, user_id)
+    if not db_user:
+        return None
+    
+    for field, value in user_update.dict(exclude_unset=True).items():
+        if field == "password" and value:
+            setattr(db_user, "hashed_password", get_password_hash(value))
+        else:
+            setattr(db_user, field, value)
+    
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+def delete_user(db: Session, user_id: int):
+    db_user = get_user(db, user_id)
+    if db_user:
+        db.delete(db_user)
+        db.commit()
+    return db_user
+
+def get_user_bookings(db: Session, user_id: int):
+    """Get all bookings for a user"""
+    return db.query(Booking).filter(Booking.user_id == user_id).order_by(Booking.created_at.desc()).all()
+
+# Admin stats
+def get_user_stats(db: Session):
+    """Get user statistics for admin dashboard"""
+    current_date = datetime.now()
+    current_month = current_date.month
+    current_year = current_date.year
+    
+    total_users = db.query(User).filter(User.role == "user").count()
+    active_users = db.query(User).filter(User.role == "user", User.is_active == True).count()
+    total_admins = db.query(User).filter(User.role.in_(["admin", "super_admin"])).count()
+    users_this_month = db.query(User).filter(
+        User.role == "user",
+        extract('month', User.created_at) == current_month,
+        extract('year', User.created_at) == current_year
+    ).count()
+    
+    return {
+        "total_users": total_users,
+        "active_users": active_users, 
+        "total_admins": total_admins,
+        "users_this_month": users_this_month
+    }
+
+def get_booking_stats(db: Session):
+    """Get booking statistics for admin dashboard"""
+    current_date = datetime.now()
+    current_month = current_date.month
+    current_year = current_date.year
+    
+    total_bookings = db.query(Booking).count()
+    confirmed_bookings = db.query(Booking).filter(Booking.status == "confirmed").count()
+    cancelled_bookings = db.query(Booking).filter(Booking.status == "cancelled").count()
+    bookings_this_month = db.query(Booking).filter(
+        extract('month', Booking.created_at) == current_month,
+        extract('year', Booking.created_at) == current_year
+    ).count()
+    
+    # Calculate revenue this month
+    revenue_result = db.query(func.sum(Booking.total_amount)).filter(
+        Booking.status == "confirmed",
+        extract('month', Booking.created_at) == current_month,
+        extract('year', Booking.created_at) == current_year
+    ).scalar()
+    revenue_this_month = float(revenue_result) if revenue_result else 0.0
+    
+    return {
+        "total_bookings": total_bookings,
+        "confirmed_bookings": confirmed_bookings,
+        "cancelled_bookings": cancelled_bookings, 
+        "bookings_this_month": bookings_this_month,
+        "revenue_this_month": revenue_this_month
+    }
