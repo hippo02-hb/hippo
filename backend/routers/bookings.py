@@ -8,9 +8,24 @@ from auth import get_current_user_optional
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
 @router.post("/", response_model=schemas.Booking)
-def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)):
+def create_booking(
+    booking: schemas.BookingCreate, 
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user_optional)
+):
     """Create new booking"""
     try:
+        # Add user_id if user is logged in
+        if current_user:
+            booking.user_id = current_user.id
+            # If user is logged in, prefill customer info from user profile
+            if not booking.customer_name:
+                booking.customer_name = current_user.full_name
+            if not booking.customer_email:
+                booking.customer_email = current_user.email
+            if not booking.customer_phone and current_user.phone:
+                booking.customer_phone = current_user.phone
+        
         return crud.create_booking(db=db, booking=booking)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
