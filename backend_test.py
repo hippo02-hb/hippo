@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Script for Galaxy Cinema
-Tests all core endpoints according to test_result.md requirements
+Tests authentication system and role-based access control
 """
 
 import requests
@@ -20,8 +20,12 @@ if not BASE_URL:
 
 API_BASE_URL = f"{BASE_URL}/api"
 
-print(f"Testing Galaxy Cinema API at: {API_BASE_URL}")
-print("=" * 60)
+print(f"Testing Galaxy Cinema Authentication API at: {API_BASE_URL}")
+print("=" * 80)
+
+# Global variables to store tokens
+admin_token = None
+user_token = None
 
 def test_health_endpoint():
     """Test GET /api/health"""
