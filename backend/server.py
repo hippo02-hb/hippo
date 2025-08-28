@@ -30,6 +30,8 @@ async def health_check():
     return {"status": "healthy", "service": "galaxy-cinema-api"}
 
 # Include all routers
+api_router.include_router(auth.router)
+api_router.include_router(admin.router)
 api_router.include_router(movies.router)
 api_router.include_router(cinemas.router)
 api_router.include_router(showtimes.router)
