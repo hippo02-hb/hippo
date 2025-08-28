@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 import crud
 import schemas
+from auth import get_current_user_optional
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
