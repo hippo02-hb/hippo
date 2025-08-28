@@ -9,7 +9,7 @@ import logging
 from database import create_tables
 
 # Import routers
-from routers import movies, cinemas, showtimes, bookings, news
+from routers import movies, cinemas, showtimes, bookings, news, auth, admin
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
