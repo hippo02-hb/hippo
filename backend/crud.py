@@ -5,7 +5,14 @@ from schemas import MovieCreate, CinemaCreate, ShowtimeCreate, BookingCreate, Ne
 from typing import Optional, List
 from datetime import date, datetime
 import uuid
-from auth import get_password_hash
+from passlib.context import CryptContext
+
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def get_password_hash(password: str) -> str:
+    """Hash a password"""
+    return pwd_context.hash(password)
 
 # Movie CRUD
 def get_movies(db: Session, status: Optional[str] = None, skip: int = 0, limit: int = 100):
