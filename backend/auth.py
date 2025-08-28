@@ -50,7 +50,8 @@ def verify_token(token: str) -> Optional[dict]:
 
 def authenticate_user(db: Session, email: str, password: str):
     """Authenticate user with email and password"""
-    user = crud.get_user_by_email(db, email=email)
+    from models import User  # Import here to avoid circular import
+    user = db.query(User).filter(User.email == email).first()
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
