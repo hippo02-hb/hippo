@@ -28,6 +28,6 @@ def get_news_item(news_id: int, db: Session = Depends(get_db)):
     return news
 
 @router.post("/", response_model=schemas.News)
-def create_news(news: schemas.NewsCreate, db: Session = Depends(get_db)):
+def create_news(news: schemas.NewsCreate, db: Session = Depends(get_db), current_user = Depends(get_admin_user)):
     """Create new news item (Admin only)"""
     return crud.create_news(db=db, news=news)
