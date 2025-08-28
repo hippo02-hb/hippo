@@ -27,75 +27,411 @@ print("=" * 80)
 admin_token = None
 user_token = None
 
-def test_health_endpoint():
-    """Test GET /api/health"""
-    print("\n1. Testing Health Endpoint")
-    print("-" * 30)
+def test_auth_login_super_admin():
+    """Test POST /api/auth/login with super admin credentials"""
+    global admin_token
+    print("\n1. Testing Super Admin Login")
+    print("-" * 40)
     
     try:
-        response = requests.get(f"{API_BASE_URL}/health", timeout=10)
+        login_data = {
+            "email": "admin@galaxycinema.vn",
+            "password": "Galaxy2024@Admin"
+        }
+        
+        response = requests.post(f"{API_BASE_URL}/auth/login", 
+                               json=login_data, 
+                               headers={"Content-Type": "application/json"},
+                               timeout=10)
         print(f"Status Code: {response.status_code}")
         
         if response.status_code == 200:
             data = response.json()
-            print(f"Response: {json.dumps(data, indent=2)}")
+            print(f"Response keys: {list(data.keys())}")
             
-            if data.get('status') == 'healthy':
-                print("✅ Health check PASSED")
-                return True
+            # Check required fields
+            required_fields = ['access_token', 'token_type', 'user']
+            if all(field in data for field in required_fields):
+                admin_token = data['access_token']
+                user_info = data['user']
+                print(f"✅ Login successful")
+                print(f"   Token type: {data['token_type']}")
+                print(f"   User role: {user_info.get('role')}")
+                print(f"   User email: {user_info.get('email')}")
+                
+                # Verify it's super admin
+                if user_info.get('role') == 'super_admin':
+                    print("✅ Super admin role confirmed")
+                    return True
+                else:
+                    print(f"❌ Expected super_admin role, got: {user_info.get('role')}")
+                    return False
             else:
-                print("❌ Health check FAILED - status not 'healthy'")
+                print(f"❌ Missing required fields. Expected: {required_fields}")
                 return False
         else:
-            print(f"❌ Health check FAILED - Expected 200, got {response.status_code}")
+            print(f"❌ Login failed - Status: {response.status_code}")
             print(f"Response: {response.text}")
             return False
             
     except Exception as e:
-        print(f"❌ Health check FAILED - Exception: {str(e)}")
+        print(f"❌ Login failed - Exception: {str(e)}")
         return False
 
-def test_movies_endpoints():
-    """Test Movies endpoints: GET /api/movies/, POST /api/movies/, GET /api/movies/{id}"""
-    print("\n2. Testing Movies Endpoints")
-    print("-" * 30)
+def test_auth_login_invalid_credentials():
+    """Test POST /api/auth/login with invalid credentials"""
+    print("\n2. Testing Login with Invalid Credentials")
+    print("-" * 40)
     
-    results = {"list": False, "create": False, "get_by_id": False}
-    
-    # Test GET /api/movies/
     try:
-        print("\n2a. Testing GET /api/movies/")
-        response = requests.get(f"{API_BASE_URL}/movies/", timeout=10)
+        login_data = {
+            "email": "invalid@email.com",
+            "password": "wrongpassword"
+        }
+        
+        response = requests.post(f"{API_BASE_URL}/auth/login", 
+                               json=login_data, 
+                               headers={"Content-Type": "application/json"},
+                               timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 401:
+            print("✅ Invalid credentials correctly rejected with 401")
+            return True
+        else:
+            print(f"❌ Expected 401 for invalid credentials, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Test failed - Exception: {str(e)}")
+        return False
+
+def test_auth_register_new_user():
+    """Test POST /api/auth/register - Register new user"""
+    global user_token
+    print("\n3. Testing User Registration")
+    print("-" * 40)
+    
+    try:
+        # Use timestamp to ensure unique email
+        timestamp = int(datetime.now().timestamp())
+        register_data = {
+            "email": f"testuser{timestamp}@galaxycinema.vn",
+            "password": "TestPass123!",
+            "full_name": "Nguyen Test User",
+            "phone": "0987654321"
+        }
+        
+        response = requests.post(f"{API_BASE_URL}/auth/register", 
+                               json=register_data, 
+                               headers={"Content-Type": "application/json"},
+                               timeout=10)
         print(f"Status Code: {response.status_code}")
         
         if response.status_code == 200:
-            movies = response.json()
-            print(f"Response: {json.dumps(movies[:2] if len(movies) > 2 else movies, indent=2)}...")
-            print(f"Total movies found: {len(movies)}")
-            results["list"] = True
-            print("✅ GET /api/movies/ PASSED")
+            data = response.json()
+            print(f"Response keys: {list(data.keys())}")
+            
+            # Check required fields
+            required_fields = ['access_token', 'token_type', 'user']
+            if all(field in data for field in required_fields):
+                user_token = data['access_token']
+                user_info = data['user']
+                print(f"✅ Registration successful")
+                print(f"   Token type: {data['token_type']}")
+                print(f"   User role: {user_info.get('role')}")
+                print(f"   User email: {user_info.get('email')}")
+                
+                # Verify it's regular user
+                if user_info.get('role') == 'user':
+                    print("✅ User role confirmed")
+                    return True
+                else:
+                    print(f"❌ Expected user role, got: {user_info.get('role')}")
+                    return False
+            else:
+                print(f"❌ Missing required fields. Expected: {required_fields}")
+                return False
         else:
-            print(f"❌ GET /api/movies/ FAILED - Status: {response.status_code}")
+            print(f"❌ Registration failed - Status: {response.status_code}")
             print(f"Response: {response.text}")
+            return False
             
     except Exception as e:
-        print(f"❌ GET /api/movies/ FAILED - Exception: {str(e)}")
+        print(f"❌ Registration failed - Exception: {str(e)}")
+        return False
+
+def test_auth_register_duplicate_email():
+    """Test POST /api/auth/register with duplicate email"""
+    print("\n4. Testing Registration with Duplicate Email")
+    print("-" * 40)
+    
+    try:
+        register_data = {
+            "email": "admin@galaxycinema.vn",  # This should already exist
+            "password": "TestPass123!",
+            "full_name": "Duplicate User",
+            "phone": "0987654321"
+        }
+        
+        response = requests.post(f"{API_BASE_URL}/auth/register", 
+                               json=register_data, 
+                               headers={"Content-Type": "application/json"},
+                               timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 400:
+            print("✅ Duplicate email correctly rejected with 400")
+            return True
+        else:
+            print(f"❌ Expected 400 for duplicate email, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Test failed - Exception: {str(e)}")
+        return False
+
+def test_auth_me_with_valid_token():
+    """Test GET /api/auth/me with valid JWT token"""
+    print("\n5. Testing Get Current User Info (Valid Token)")
+    print("-" * 40)
+    
+    if not admin_token:
+        print("❌ No admin token available for testing")
+        return False
+    
+    try:
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = requests.get(f"{API_BASE_URL}/auth/me", 
+                              headers=headers,
+                              timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            user_info = response.json()
+            print(f"User Info: {json.dumps(user_info, indent=2, default=str)}")
+            
+            # Check required fields
+            required_fields = ['id', 'email', 'full_name', 'role', 'is_active']
+            if all(field in user_info for field in required_fields):
+                print("✅ User info retrieved successfully")
+                return True
+            else:
+                print(f"❌ Missing required fields. Expected: {required_fields}")
+                return False
+        else:
+            print(f"❌ Failed to get user info - Status: {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Test failed - Exception: {str(e)}")
+        return False
+
+def test_auth_me_with_invalid_token():
+    """Test GET /api/auth/me with invalid JWT token"""
+    print("\n6. Testing Get Current User Info (Invalid Token)")
+    print("-" * 40)
+    
+    try:
+        headers = {"Authorization": "Bearer invalid_token_here"}
+        response = requests.get(f"{API_BASE_URL}/auth/me", 
+                              headers=headers,
+                              timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 401:
+            print("✅ Invalid token correctly rejected with 401")
+            return True
+        else:
+            print(f"❌ Expected 401 for invalid token, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Test failed - Exception: {str(e)}")
+        return False
+
+def test_auth_me_without_token():
+    """Test GET /api/auth/me without token"""
+    print("\n7. Testing Get Current User Info (No Token)")
+    print("-" * 40)
+    
+    try:
+        response = requests.get(f"{API_BASE_URL}/auth/me", timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 401 or response.status_code == 403:
+            print("✅ Missing token correctly rejected")
+            return True
+        else:
+            print(f"❌ Expected 401/403 for missing token, got {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Test failed - Exception: {str(e)}")
+        return False
+
+def test_admin_endpoints_with_admin_token():
+    """Test admin-only endpoints with admin token"""
+    print("\n8. Testing Admin Endpoints with Admin Token")
+    print("-" * 40)
+    
+    if not admin_token:
+        print("❌ No admin token available for testing")
+        return {"movies": False, "cinemas": False, "news": False, "showtimes": False}
+    
+    results = {"movies": False, "cinemas": False, "news": False, "showtimes": False}
+    headers = {"Authorization": f"Bearer {admin_token}", "Content-Type": "application/json"}
     
     # Test POST /api/movies/
     try:
-        print("\n2b. Testing POST /api/movies/")
+        print("\n8a. Testing POST /api/movies/ (Admin required)")
         movie_data = {
-            "title": "Avengers: Endgame",
-            "poster": "https://example.com/avengers-endgame.jpg",
+            "title": "Test Movie Admin Auth",
+            "poster": "https://example.com/test-movie.jpg",
             "rating": "PG-13",
-            "genre": "Action, Adventure, Drama",
-            "duration": 181,
+            "genre": "Action, Test",
+            "duration": 120,
             "status": "showing",
-            "trailer": "https://youtube.com/watch?v=example",
-            "description": "After the devastating events of Avengers: Infinity War, the universe is in ruins.",
-            "director": "Anthony Russo, Joe Russo",
-            "cast": ["Robert Downey Jr.", "Chris Evans", "Mark Ruffalo", "Chris Hemsworth"],
-            "release_date": "2019-04-26"
+            "description": "Test movie for admin authentication",
+            "director": "Test Director",
+            "cast": ["Test Actor 1", "Test Actor 2"],
+            "release_date": "2024-01-15"
+        }
+        
+        response = requests.post(f"{API_BASE_URL}/movies/", 
+                               json=movie_data, 
+                               headers=headers,
+                               timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            print("✅ POST /api/movies/ with admin token PASSED")
+            results["movies"] = True
+        else:
+            print(f"❌ POST /api/movies/ FAILED - Status: {response.status_code}")
+            print(f"Response: {response.text}")
+            
+    except Exception as e:
+        print(f"❌ POST /api/movies/ FAILED - Exception: {str(e)}")
+    
+    # Test POST /api/cinemas/
+    try:
+        print("\n8b. Testing POST /api/cinemas/ (Admin required)")
+        cinema_data = {
+            "name": "Test Cinema Admin Auth",
+            "address": "123 Test Street, Test City",
+            "province": "Test Province"
+        }
+        
+        response = requests.post(f"{API_BASE_URL}/cinemas/", 
+                               json=cinema_data, 
+                               headers=headers,
+                               timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            print("✅ POST /api/cinemas/ with admin token PASSED")
+            results["cinemas"] = True
+        else:
+            print(f"❌ POST /api/cinemas/ FAILED - Status: {response.status_code}")
+            print(f"Response: {response.text}")
+            
+    except Exception as e:
+        print(f"❌ POST /api/cinemas/ FAILED - Exception: {str(e)}")
+    
+    # Test POST /api/news/
+    try:
+        print("\n8c. Testing POST /api/news/ (Admin required)")
+        news_data = {
+            "title": "Test News Admin Auth",
+            "summary": "Test news for admin authentication",
+            "content": "This is a test news item to verify admin authentication works correctly.",
+            "category": "news",
+            "publish_date": "2024-01-15",
+            "is_active": True
+        }
+        
+        response = requests.post(f"{API_BASE_URL}/news/", 
+                               json=news_data, 
+                               headers=headers,
+                               timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            print("✅ POST /api/news/ with admin token PASSED")
+            results["news"] = True
+        else:
+            print(f"❌ POST /api/news/ FAILED - Status: {response.status_code}")
+            print(f"Response: {response.text}")
+            
+    except Exception as e:
+        print(f"❌ POST /api/news/ FAILED - Exception: {str(e)}")
+    
+    # Test POST /api/showtimes/ (need to get valid movie and cinema IDs first)
+    try:
+        print("\n8d. Testing POST /api/showtimes/ (Admin required)")
+        
+        # Get a movie ID
+        movies_response = requests.get(f"{API_BASE_URL}/movies/", timeout=10)
+        cinemas_response = requests.get(f"{API_BASE_URL}/cinemas/", timeout=10)
+        
+        if movies_response.status_code == 200 and cinemas_response.status_code == 200:
+            movies = movies_response.json()
+            cinemas = cinemas_response.json()
+            
+            if movies and cinemas:
+                showtime_data = {
+                    "movie_id": movies[0]['id'],
+                    "cinema_id": cinemas[0]['id'],
+                    "screen_id": 1,  # Assuming screen ID 1 exists
+                    "show_date": "2024-02-15",
+                    "show_time": "19:30:00",
+                    "price": 100000,
+                    "available_seats": 100
+                }
+                
+                response = requests.post(f"{API_BASE_URL}/showtimes/", 
+                                       json=showtime_data, 
+                                       headers=headers,
+                                       timeout=10)
+                print(f"Status Code: {response.status_code}")
+                
+                if response.status_code == 200:
+                    print("✅ POST /api/showtimes/ with admin token PASSED")
+                    results["showtimes"] = True
+                else:
+                    print(f"❌ POST /api/showtimes/ FAILED - Status: {response.status_code}")
+                    print(f"Response: {response.text}")
+            else:
+                print("⚠️ No movies or cinemas available for showtime test")
+        else:
+            print("⚠️ Could not fetch movies/cinemas for showtime test")
+            
+    except Exception as e:
+        print(f"❌ POST /api/showtimes/ FAILED - Exception: {str(e)}")
+    
+    return results
+
+def test_admin_endpoints_without_token():
+    """Test admin-only endpoints without token"""
+    print("\n9. Testing Admin Endpoints without Token")
+    print("-" * 40)
+    
+    results = {"movies": False, "cinemas": False, "news": False, "showtimes": False}
+    
+    # Test POST /api/movies/ without token
+    try:
+        print("\n9a. Testing POST /api/movies/ (No token)")
+        movie_data = {
+            "title": "Test Movie No Auth",
+            "rating": "PG-13",
+            "genre": "Action",
+            "duration": 120
         }
         
         response = requests.post(f"{API_BASE_URL}/movies/", 
@@ -104,221 +440,236 @@ def test_movies_endpoints():
                                timeout=10)
         print(f"Status Code: {response.status_code}")
         
-        if response.status_code == 200:
-            created_movie = response.json()
-            print(f"Created Movie: {json.dumps(created_movie, indent=2, default=str)}")
-            movie_id = created_movie.get('id')
-            results["create"] = True
-            print("✅ POST /api/movies/ PASSED")
-            
-            # Test GET /api/movies/{id}
-            if movie_id:
-                print(f"\n2c. Testing GET /api/movies/{movie_id}")
-                response = requests.get(f"{API_BASE_URL}/movies/{movie_id}", timeout=10)
-                print(f"Status Code: {response.status_code}")
-                
-                if response.status_code == 200:
-                    movie = response.json()
-                    print(f"Retrieved Movie: {json.dumps(movie, indent=2, default=str)}")
-                    results["get_by_id"] = True
-                    print("✅ GET /api/movies/{id} PASSED")
-                else:
-                    print(f"❌ GET /api/movies/{movie_id} FAILED - Status: {response.status_code}")
-                    print(f"Response: {response.text}")
+        if response.status_code in [401, 403]:
+            print("✅ POST /api/movies/ correctly rejected without token")
+            results["movies"] = True
         else:
-            print(f"❌ POST /api/movies/ FAILED - Status: {response.status_code}")
-            print(f"Response: {response.text}")
+            print(f"❌ Expected 401/403, got {response.status_code}")
             
     except Exception as e:
-        print(f"❌ Movies endpoints FAILED - Exception: {str(e)}")
+        print(f"❌ Test failed - Exception: {str(e)}")
     
-    return results
-
-def test_cinemas_endpoints():
-    """Test Cinemas endpoints: GET /api/cinemas/, POST /api/cinemas/, GET /api/cinemas/{id}"""
-    print("\n3. Testing Cinemas Endpoints")
-    print("-" * 30)
+    # Test other endpoints similarly
+    endpoints = [
+        ("POST /api/cinemas/", "/cinemas/", {"name": "Test Cinema", "address": "Test"}),
+        ("POST /api/news/", "/news/", {"title": "Test News", "content": "Test"}),
+        ("POST /api/showtimes/", "/showtimes/", {"movie_id": 1, "cinema_id": 1, "screen_id": 1, "show_date": "2024-02-15", "show_time": "19:30:00", "price": 100000})
+    ]
     
-    results = {"list": False, "create": False, "get_by_id": False}
-    
-    # Test GET /api/cinemas/
-    try:
-        print("\n3a. Testing GET /api/cinemas/")
-        response = requests.get(f"{API_BASE_URL}/cinemas/", timeout=10)
-        print(f"Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            cinemas = response.json()
-            print(f"Response: {json.dumps(cinemas[:2] if len(cinemas) > 2 else cinemas, indent=2)}...")
-            print(f"Total cinemas found: {len(cinemas)}")
-            results["list"] = True
-            print("✅ GET /api/cinemas/ PASSED")
-        else:
-            print(f"❌ GET /api/cinemas/ FAILED - Status: {response.status_code}")
-            print(f"Response: {response.text}")
+    for endpoint_name, endpoint_path, test_data in endpoints:
+        try:
+            print(f"\n9b. Testing {endpoint_name} (No token)")
+            response = requests.post(f"{API_BASE_URL}{endpoint_path}", 
+                                   json=test_data, 
+                                   headers={"Content-Type": "application/json"},
+                                   timeout=10)
+            print(f"Status Code: {response.status_code}")
             
-    except Exception as e:
-        print(f"❌ GET /api/cinemas/ FAILED - Exception: {str(e)}")
-    
-    # Test POST /api/cinemas/
-    try:
-        print("\n3b. Testing POST /api/cinemas/")
-        cinema_data = {
-            "name": "Galaxy Cinema Nguyen Trai",
-            "address": "123 Nguyen Trai Street, District 1, Ho Chi Minh City",
-            "province": "Ho Chi Minh"
-        }
-        
-        response = requests.post(f"{API_BASE_URL}/cinemas/", 
-                               json=cinema_data, 
-                               headers={"Content-Type": "application/json"},
-                               timeout=10)
-        print(f"Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            created_cinema = response.json()
-            print(f"Created Cinema: {json.dumps(created_cinema, indent=2, default=str)}")
-            cinema_id = created_cinema.get('id')
-            results["create"] = True
-            print("✅ POST /api/cinemas/ PASSED")
-            
-            # Test GET /api/cinemas/{id}
-            if cinema_id:
-                print(f"\n3c. Testing GET /api/cinemas/{cinema_id}")
-                response = requests.get(f"{API_BASE_URL}/cinemas/{cinema_id}", timeout=10)
-                print(f"Status Code: {response.status_code}")
-                
-                if response.status_code == 200:
-                    cinema = response.json()
-                    print(f"Retrieved Cinema: {json.dumps(cinema, indent=2, default=str)}")
-                    results["get_by_id"] = True
-                    print("✅ GET /api/cinemas/{id} PASSED")
-                else:
-                    print(f"❌ GET /api/cinemas/{cinema_id} FAILED - Status: {response.status_code}")
-                    print(f"Response: {response.text}")
-        else:
-            print(f"❌ POST /api/cinemas/ FAILED - Status: {response.status_code}")
-            print(f"Response: {response.text}")
-            
-    except Exception as e:
-        print(f"❌ Cinemas endpoints FAILED - Exception: {str(e)}")
-    
-    return results
-
-def test_news_endpoints():
-    """Test News endpoints: GET /api/news/, POST /api/news/, GET /api/news/{id}"""
-    print("\n4. Testing News Endpoints")
-    print("-" * 30)
-    
-    results = {"list": False, "create": False, "get_by_id": False}
-    
-    # Test GET /api/news/
-    try:
-        print("\n4a. Testing GET /api/news/")
-        response = requests.get(f"{API_BASE_URL}/news/", timeout=10)
-        print(f"Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            news = response.json()
-            print(f"Response: {json.dumps(news[:2] if len(news) > 2 else news, indent=2)}...")
-            print(f"Total news found: {len(news)}")
-            results["list"] = True
-            print("✅ GET /api/news/ PASSED")
-        else:
-            print(f"❌ GET /api/news/ FAILED - Status: {response.status_code}")
-            print(f"Response: {response.text}")
-            
-    except Exception as e:
-        print(f"❌ GET /api/news/ FAILED - Exception: {str(e)}")
-    
-    # Test POST /api/news/
-    try:
-        print("\n4b. Testing POST /api/news/")
-        news_data = {
-            "title": "Galaxy Cinema Grand Opening Sale",
-            "summary": "Special discount for all movies this weekend",
-            "content": "Join us for our grand opening celebration with 50% off all movie tickets this weekend. Don't miss out on the latest blockbusters at unbeatable prices!",
-            "image": "https://example.com/grand-opening.jpg",
-            "category": "promotion",
-            "publish_date": "2024-01-15",
-            "is_active": True
-        }
-        
-        response = requests.post(f"{API_BASE_URL}/news/", 
-                               json=news_data, 
-                               headers={"Content-Type": "application/json"},
-                               timeout=10)
-        print(f"Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            created_news = response.json()
-            print(f"Created News: {json.dumps(created_news, indent=2, default=str)}")
-            news_id = created_news.get('id')
-            results["create"] = True
-            print("✅ POST /api/news/ PASSED")
-            
-            # Test GET /api/news/{id}
-            if news_id:
-                print(f"\n4c. Testing GET /api/news/{news_id}")
-                response = requests.get(f"{API_BASE_URL}/news/{news_id}", timeout=10)
-                print(f"Status Code: {response.status_code}")
-                
-                if response.status_code == 200:
-                    news_item = response.json()
-                    print(f"Retrieved News: {json.dumps(news_item, indent=2, default=str)}")
-                    results["get_by_id"] = True
-                    print("✅ GET /api/news/{id} PASSED")
-                else:
-                    print(f"❌ GET /api/news/{news_id} FAILED - Status: {response.status_code}")
-                    print(f"Response: {response.text}")
-        else:
-            print(f"❌ POST /api/news/ FAILED - Status: {response.status_code}")
-            print(f"Response: {response.text}")
-            
-    except Exception as e:
-        print(f"❌ News endpoints FAILED - Exception: {str(e)}")
-    
-    return results
-
-def test_booking_endpoints():
-    """Test Booking endpoints: POST /api/bookings/, GET /api/bookings/code/{code}, GET /api/bookings/{id}/details, PATCH /api/bookings/{id}/cancel"""
-    print("\n5. Testing Booking Endpoints")
-    print("-" * 30)
-    
-    results = {"create": False, "get_by_code": False, "get_details": False, "cancel": False}
-    booking_id = None
-    booking_code = None
-    
-    # First, get a valid showtime ID
-    try:
-        print("\n5a. Getting available showtimes...")
-        response = requests.get(f"{API_BASE_URL}/showtimes/", timeout=10)
-        if response.status_code == 200:
-            showtimes = response.json()
-            if showtimes:
-                showtime_id = showtimes[0]['id']
-                print(f"Using showtime ID: {showtime_id}")
+            if response.status_code in [401, 403]:
+                print(f"✅ {endpoint_name} correctly rejected without token")
+                key = endpoint_path.split('/')[1]  # Extract key from path
+                if key in results:
+                    results[key] = True
             else:
-                print("❌ No showtimes available for testing")
-                return results
-        else:
-            print(f"❌ Failed to get showtimes - Status: {response.status_code}")
-            return results
-    except Exception as e:
-        print(f"❌ Failed to get showtimes - Exception: {str(e)}")
-        return results
+                print(f"❌ Expected 401/403, got {response.status_code}")
+                
+        except Exception as e:
+            print(f"❌ Test failed - Exception: {str(e)}")
     
-    # Test POST /api/bookings/
+    return results
+
+def test_admin_endpoints_with_user_token():
+    """Test admin-only endpoints with regular user token"""
+    print("\n10. Testing Admin Endpoints with User Token")
+    print("-" * 40)
+    
+    if not user_token:
+        print("❌ No user token available for testing")
+        return {"movies": False, "cinemas": False, "news": False, "showtimes": False}
+    
+    results = {"movies": False, "cinemas": False, "news": False, "showtimes": False}
+    headers = {"Authorization": f"Bearer {user_token}", "Content-Type": "application/json"}
+    
+    endpoints = [
+        ("POST /api/movies/", "/movies/", {"title": "Test Movie User Auth", "rating": "PG-13"}),
+        ("POST /api/cinemas/", "/cinemas/", {"name": "Test Cinema User Auth", "address": "Test"}),
+        ("POST /api/news/", "/news/", {"title": "Test News User Auth", "content": "Test"}),
+        ("POST /api/showtimes/", "/showtimes/", {"movie_id": 1, "cinema_id": 1, "screen_id": 1, "show_date": "2024-02-15", "show_time": "19:30:00", "price": 100000})
+    ]
+    
+    for endpoint_name, endpoint_path, test_data in endpoints:
+        try:
+            print(f"\n10a. Testing {endpoint_name} (User token)")
+            response = requests.post(f"{API_BASE_URL}{endpoint_path}", 
+                                   json=test_data, 
+                                   headers=headers,
+                                   timeout=10)
+            print(f"Status Code: {response.status_code}")
+            
+            if response.status_code == 403:
+                print(f"✅ {endpoint_name} correctly rejected with user token (403 Forbidden)")
+                key = endpoint_path.split('/')[1]  # Extract key from path
+                if key in results:
+                    results[key] = True
+            else:
+                print(f"❌ Expected 403 for user token, got {response.status_code}")
+                print(f"Response: {response.text}")
+                
+        except Exception as e:
+            print(f"❌ Test failed - Exception: {str(e)}")
+    
+    return results
+
+def test_admin_stats_endpoints():
+    """Test admin stats endpoints"""
+    print("\n11. Testing Admin Stats Endpoints")
+    print("-" * 40)
+    
+    if not admin_token:
+        print("❌ No admin token available for testing")
+        return {"users": False, "bookings": False}
+    
+    results = {"users": False, "bookings": False}
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    
+    # Test GET /api/admin/stats/users
     try:
-        print("\n5b. Testing POST /api/bookings/")
+        print("\n11a. Testing GET /api/admin/stats/users")
+        response = requests.get(f"{API_BASE_URL}/admin/stats/users", 
+                              headers=headers,
+                              timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            stats = response.json()
+            print(f"User Stats: {json.dumps(stats, indent=2)}")
+            
+            # Check required fields
+            required_fields = ['total_users', 'active_users', 'total_admins', 'users_this_month']
+            if all(field in stats for field in required_fields):
+                print("✅ GET /api/admin/stats/users PASSED")
+                results["users"] = True
+            else:
+                print(f"❌ Missing required fields. Expected: {required_fields}")
+        else:
+            print(f"❌ GET /api/admin/stats/users FAILED - Status: {response.status_code}")
+            print(f"Response: {response.text}")
+            
+    except Exception as e:
+        print(f"❌ GET /api/admin/stats/users FAILED - Exception: {str(e)}")
+    
+    # Test GET /api/admin/stats/bookings
+    try:
+        print("\n11b. Testing GET /api/admin/stats/bookings")
+        response = requests.get(f"{API_BASE_URL}/admin/stats/bookings", 
+                              headers=headers,
+                              timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            stats = response.json()
+            print(f"Booking Stats: {json.dumps(stats, indent=2)}")
+            
+            # Check required fields
+            required_fields = ['total_bookings', 'confirmed_bookings', 'cancelled_bookings', 'bookings_this_month', 'revenue_this_month']
+            if all(field in stats for field in required_fields):
+                print("✅ GET /api/admin/stats/bookings PASSED")
+                results["bookings"] = True
+            else:
+                print(f"❌ Missing required fields. Expected: {required_fields}")
+        else:
+            print(f"❌ GET /api/admin/stats/bookings FAILED - Status: {response.status_code}")
+            print(f"Response: {response.text}")
+            
+    except Exception as e:
+        print(f"❌ GET /api/admin/stats/bookings FAILED - Exception: {str(e)}")
+    
+    return results
+
+def test_enhanced_booking_authenticated():
+    """Test booking with authenticated user (auto-fill user info)"""
+    print("\n12. Testing Enhanced Booking (Authenticated User)")
+    print("-" * 40)
+    
+    if not user_token:
+        print("❌ No user token available for testing")
+        return False
+    
+    try:
+        # First, get a valid showtime ID
+        response = requests.get(f"{API_BASE_URL}/showtimes/", timeout=10)
+        if response.status_code != 200 or not response.json():
+            print("❌ No showtimes available for testing")
+            return False
+        
+        showtimes = response.json()
+        showtime_id = showtimes[0]['id']
+        print(f"Using showtime ID: {showtime_id}")
+        
+        # Create booking with minimal data (should auto-fill from user profile)
         booking_data = {
             "showtime_id": showtime_id,
-            "customer_name": "Nguyen Van Minh",
-            "customer_phone": "0901234567",
-            "customer_email": "minh.nguyen@email.com",
-            "seats": ["B3", "B4"],
+            "seats": ["C5", "C6"],
             "total_amount": 200000,
             "payment_method": "credit_card"
+            # Note: Not providing customer_name, customer_phone, customer_email
+            # These should be auto-filled from authenticated user
+        }
+        
+        headers = {"Authorization": f"Bearer {user_token}", "Content-Type": "application/json"}
+        response = requests.post(f"{API_BASE_URL}/bookings/", 
+                               json=booking_data, 
+                               headers=headers,
+                               timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            booking = response.json()
+            print(f"Created Booking: {json.dumps(booking, indent=2, default=str)}")
+            
+            # Verify user info was auto-filled
+            if booking.get('customer_name') and booking.get('customer_email'):
+                print("✅ Enhanced booking with authenticated user PASSED")
+                print(f"   Auto-filled name: {booking.get('customer_name')}")
+                print(f"   Auto-filled email: {booking.get('customer_email')}")
+                return True
+            else:
+                print("❌ User info was not auto-filled")
+                return False
+        else:
+            print(f"❌ Enhanced booking FAILED - Status: {response.status_code}")
+            print(f"Response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Enhanced booking FAILED - Exception: {str(e)}")
+        return False
+
+def test_enhanced_booking_guest():
+    """Test booking without authentication (guest booking)"""
+    print("\n13. Testing Enhanced Booking (Guest User)")
+    print("-" * 40)
+    
+    try:
+        # First, get a valid showtime ID
+        response = requests.get(f"{API_BASE_URL}/showtimes/", timeout=10)
+        if response.status_code != 200 or not response.json():
+            print("❌ No showtimes available for testing")
+            return False
+        
+        showtimes = response.json()
+        showtime_id = showtimes[0]['id']
+        print(f"Using showtime ID: {showtime_id}")
+        
+        # Create booking as guest (must provide all customer info)
+        booking_data = {
+            "showtime_id": showtime_id,
+            "customer_name": "Tran Van Guest",
+            "customer_phone": "0912345678",
+            "customer_email": "guest@example.com",
+            "seats": ["D7", "D8"],
+            "total_amount": 200000,
+            "payment_method": "cash"
         }
         
         response = requests.post(f"{API_BASE_URL}/bookings/", 
@@ -328,177 +679,113 @@ def test_booking_endpoints():
         print(f"Status Code: {response.status_code}")
         
         if response.status_code == 200:
-            created_booking = response.json()
-            print(f"Created Booking: {json.dumps(created_booking, indent=2, default=str)}")
-            booking_id = created_booking.get('id')
-            booking_code = created_booking.get('booking_code')
+            booking = response.json()
+            print(f"Created Booking: {json.dumps(booking, indent=2, default=str)}")
             
-            # Verify booking code format (GCxxxxxxxx)
-            if booking_code and booking_code.startswith('GC') and len(booking_code) == 10:
-                print(f"✅ Booking code format correct: {booking_code}")
-                results["create"] = True
-                print("✅ POST /api/bookings/ PASSED")
+            # Verify booking was created with provided info
+            if (booking.get('customer_name') == booking_data['customer_name'] and 
+                booking.get('customer_email') == booking_data['customer_email']):
+                print("✅ Guest booking PASSED")
+                return True
             else:
-                print(f"❌ Invalid booking code format: {booking_code}")
+                print("❌ Guest booking info mismatch")
+                return False
         else:
-            print(f"❌ POST /api/bookings/ FAILED - Status: {response.status_code}")
+            print(f"❌ Guest booking FAILED - Status: {response.status_code}")
             print(f"Response: {response.text}")
+            return False
             
     except Exception as e:
-        print(f"❌ POST /api/bookings/ FAILED - Exception: {str(e)}")
-    
-    # Test GET /api/bookings/code/{code}
-    if booking_code:
-        try:
-            print(f"\n5c. Testing GET /api/bookings/code/{booking_code}")
-            response = requests.get(f"{API_BASE_URL}/bookings/code/{booking_code}", timeout=10)
-            print(f"Status Code: {response.status_code}")
-            
-            if response.status_code == 200:
-                booking_by_code = response.json()
-                print(f"Retrieved Booking by Code: {json.dumps(booking_by_code, indent=2, default=str)}")
-                
-                # Verify it's the same booking
-                if booking_by_code.get('id') == booking_id:
-                    results["get_by_code"] = True
-                    print("✅ GET /api/bookings/code/{code} PASSED")
-                else:
-                    print("❌ Retrieved booking ID doesn't match created booking")
-            else:
-                print(f"❌ GET /api/bookings/code/{booking_code} FAILED - Status: {response.status_code}")
-                print(f"Response: {response.text}")
-                
-        except Exception as e:
-            print(f"❌ GET /api/bookings/code/{booking_code} FAILED - Exception: {str(e)}")
-    
-    # Test GET /api/bookings/{id}/details
-    if booking_id:
-        try:
-            print(f"\n5d. Testing GET /api/bookings/{booking_id}/details")
-            response = requests.get(f"{API_BASE_URL}/bookings/{booking_id}/details", timeout=10)
-            print(f"Status Code: {response.status_code}")
-            
-            if response.status_code == 200:
-                booking_details = response.json()
-                print(f"Booking Details: {json.dumps(booking_details, indent=2, default=str)}")
-                
-                # Verify structure contains booking, movie, cinema, showtime
-                required_keys = ['booking', 'movie', 'cinema', 'showtime']
-                if all(key in booking_details for key in required_keys):
-                    results["get_details"] = True
-                    print("✅ GET /api/bookings/{id}/details PASSED")
-                else:
-                    print(f"❌ Missing required keys in response. Expected: {required_keys}")
-            else:
-                print(f"❌ GET /api/bookings/{booking_id}/details FAILED - Status: {response.status_code}")
-                print(f"Response: {response.text}")
-                
-        except Exception as e:
-            print(f"❌ GET /api/bookings/{booking_id}/details FAILED - Exception: {str(e)}")
-    
-    # Test PATCH /api/bookings/{id}/cancel
-    if booking_id:
-        try:
-            print(f"\n5e. Testing PATCH /api/bookings/{booking_id}/cancel")
-            response = requests.patch(f"{API_BASE_URL}/bookings/{booking_id}/cancel", timeout=10)
-            print(f"Status Code: {response.status_code}")
-            
-            if response.status_code == 200:
-                cancelled_booking = response.json()
-                print(f"Cancelled Booking: {json.dumps(cancelled_booking, indent=2, default=str)}")
-                
-                # Verify status changed to 'cancelled'
-                if cancelled_booking.get('status') == 'cancelled':
-                    results["cancel"] = True
-                    print("✅ PATCH /api/bookings/{id}/cancel PASSED")
-                else:
-                    print(f"❌ Booking status not 'cancelled': {cancelled_booking.get('status')}")
-            else:
-                print(f"❌ PATCH /api/bookings/{booking_id}/cancel FAILED - Status: {response.status_code}")
-                print(f"Response: {response.text}")
-                
-        except Exception as e:
-            print(f"❌ PATCH /api/bookings/{booking_id}/cancel FAILED - Exception: {str(e)}")
-    
-    # Test edge cases
-    print("\n5f. Testing edge cases...")
-    
-    # Test invalid booking code
-    try:
-        print("Testing invalid booking code...")
-        response = requests.get(f"{API_BASE_URL}/bookings/code/INVALID123", timeout=10)
-        if response.status_code == 404:
-            print("✅ Invalid booking code returns 404 as expected")
-        else:
-            print(f"⚠️ Invalid booking code returned {response.status_code}, expected 404")
-    except Exception as e:
-        print(f"⚠️ Error testing invalid booking code: {str(e)}")
-    
-    # Test non-existent booking ID
-    try:
-        print("Testing non-existent booking ID...")
-        response = requests.get(f"{API_BASE_URL}/bookings/99999/details", timeout=10)
-        if response.status_code == 404:
-            print("✅ Non-existent booking ID returns 404 as expected")
-        else:
-            print(f"⚠️ Non-existent booking ID returned {response.status_code}, expected 404")
-    except Exception as e:
-        print(f"⚠️ Error testing non-existent booking ID: {str(e)}")
-    
-    return results
+        print(f"❌ Guest booking FAILED - Exception: {str(e)}")
+        return False
 
 def main():
-    """Run all tests and provide summary"""
-    print("Galaxy Cinema Backend API Testing")
-    print("=" * 60)
+    """Run all authentication tests and provide summary"""
+    print("Galaxy Cinema Authentication System Testing")
+    print("=" * 80)
     
-    # Run all tests
-    health_result = test_health_endpoint()
-    movies_results = test_movies_endpoints()
-    cinemas_results = test_cinemas_endpoints()
-    news_results = test_news_endpoints()
-    booking_results = test_booking_endpoints()
+    # Run authentication tests in order
+    auth_login_admin = test_auth_login_super_admin()
+    auth_login_invalid = test_auth_login_invalid_credentials()
+    auth_register = test_auth_register_new_user()
+    auth_register_duplicate = test_auth_register_duplicate_email()
+    auth_me_valid = test_auth_me_with_valid_token()
+    auth_me_invalid = test_auth_me_with_invalid_token()
+    auth_me_no_token = test_auth_me_without_token()
+    
+    # Test role-based access control
+    admin_with_token = test_admin_endpoints_with_admin_token()
+    admin_without_token = test_admin_endpoints_without_token()
+    admin_with_user_token = test_admin_endpoints_with_user_token()
+    
+    # Test admin stats endpoints
+    admin_stats = test_admin_stats_endpoints()
+    
+    # Test enhanced booking
+    booking_auth = test_enhanced_booking_authenticated()
+    booking_guest = test_enhanced_booking_guest()
     
     # Summary
-    print("\n" + "=" * 60)
-    print("TEST SUMMARY")
-    print("=" * 60)
+    print("\n" + "=" * 80)
+    print("AUTHENTICATION TEST SUMMARY")
+    print("=" * 80)
     
-    print(f"Health Endpoint: {'✅ PASS' if health_result else '❌ FAIL'}")
-    print(f"Movies List: {'✅ PASS' if movies_results['list'] else '❌ FAIL'}")
-    print(f"Movies Create: {'✅ PASS' if movies_results['create'] else '❌ FAIL'}")
-    print(f"Movies Get by ID: {'✅ PASS' if movies_results['get_by_id'] else '❌ FAIL'}")
-    print(f"Cinemas List: {'✅ PASS' if cinemas_results['list'] else '❌ FAIL'}")
-    print(f"Cinemas Create: {'✅ PASS' if cinemas_results['create'] else '❌ FAIL'}")
-    print(f"Cinemas Get by ID: {'✅ PASS' if cinemas_results['get_by_id'] else '❌ FAIL'}")
-    print(f"News List: {'✅ PASS' if news_results['list'] else '❌ FAIL'}")
-    print(f"News Create: {'✅ PASS' if news_results['create'] else '❌ FAIL'}")
-    print(f"News Get by ID: {'✅ PASS' if news_results['get_by_id'] else '❌ FAIL'}")
-    print(f"Booking Create: {'✅ PASS' if booking_results['create'] else '❌ FAIL'}")
-    print(f"Booking Get by Code: {'✅ PASS' if booking_results['get_by_code'] else '❌ FAIL'}")
-    print(f"Booking Get Details: {'✅ PASS' if booking_results['get_details'] else '❌ FAIL'}")
-    print(f"Booking Cancel: {'✅ PASS' if booking_results['cancel'] else '❌ FAIL'}")
+    print("\n🔐 AUTHENTICATION ENDPOINTS:")
+    print(f"   Super Admin Login: {'✅ PASS' if auth_login_admin else '❌ FAIL'}")
+    print(f"   Invalid Credentials: {'✅ PASS' if auth_login_invalid else '❌ FAIL'}")
+    print(f"   User Registration: {'✅ PASS' if auth_register else '❌ FAIL'}")
+    print(f"   Duplicate Email Rejection: {'✅ PASS' if auth_register_duplicate else '❌ FAIL'}")
+    print(f"   Get User Info (Valid Token): {'✅ PASS' if auth_me_valid else '❌ FAIL'}")
+    print(f"   Get User Info (Invalid Token): {'✅ PASS' if auth_me_invalid else '❌ FAIL'}")
+    print(f"   Get User Info (No Token): {'✅ PASS' if auth_me_no_token else '❌ FAIL'}")
     
-    # Overall result
+    print("\n🛡️ ROLE-BASED ACCESS CONTROL:")
+    print(f"   Admin Movies Endpoint: {'✅ PASS' if admin_with_token['movies'] else '❌ FAIL'}")
+    print(f"   Admin Cinemas Endpoint: {'✅ PASS' if admin_with_token['cinemas'] else '❌ FAIL'}")
+    print(f"   Admin News Endpoint: {'✅ PASS' if admin_with_token['news'] else '❌ FAIL'}")
+    print(f"   Admin Showtimes Endpoint: {'✅ PASS' if admin_with_token['showtimes'] else '❌ FAIL'}")
+    
+    print("\n🚫 UNAUTHORIZED ACCESS PROTECTION:")
+    print(f"   Movies (No Token): {'✅ PASS' if admin_without_token['movies'] else '❌ FAIL'}")
+    print(f"   Cinemas (No Token): {'✅ PASS' if admin_without_token['cinemas'] else '❌ FAIL'}")
+    print(f"   News (No Token): {'✅ PASS' if admin_without_token['news'] else '❌ FAIL'}")
+    print(f"   Showtimes (No Token): {'✅ PASS' if admin_without_token['showtimes'] else '❌ FAIL'}")
+    
+    print("\n👤 USER TOKEN RESTRICTIONS:")
+    print(f"   Movies (User Token): {'✅ PASS' if admin_with_user_token['movies'] else '❌ FAIL'}")
+    print(f"   Cinemas (User Token): {'✅ PASS' if admin_with_user_token['cinemas'] else '❌ FAIL'}")
+    print(f"   News (User Token): {'✅ PASS' if admin_with_user_token['news'] else '❌ FAIL'}")
+    print(f"   Showtimes (User Token): {'✅ PASS' if admin_with_user_token['showtimes'] else '❌ FAIL'}")
+    
+    print("\n📊 ADMIN STATS ENDPOINTS:")
+    print(f"   User Statistics: {'✅ PASS' if admin_stats['users'] else '❌ FAIL'}")
+    print(f"   Booking Statistics: {'✅ PASS' if admin_stats['bookings'] else '❌ FAIL'}")
+    
+    print("\n🎫 ENHANCED BOOKING:")
+    print(f"   Authenticated Booking: {'✅ PASS' if booking_auth else '❌ FAIL'}")
+    print(f"   Guest Booking: {'✅ PASS' if booking_guest else '❌ FAIL'}")
+    
+    # Calculate overall results
     all_tests = [
-        health_result,
-        movies_results['list'], movies_results['create'], movies_results['get_by_id'],
-        cinemas_results['list'], cinemas_results['create'], cinemas_results['get_by_id'],
-        news_results['list'], news_results['create'], news_results['get_by_id'],
-        booking_results['create'], booking_results['get_by_code'], 
-        booking_results['get_details'], booking_results['cancel']
+        auth_login_admin, auth_login_invalid, auth_register, auth_register_duplicate,
+        auth_me_valid, auth_me_invalid, auth_me_no_token,
+        admin_with_token['movies'], admin_with_token['cinemas'], admin_with_token['news'], admin_with_token['showtimes'],
+        admin_without_token['movies'], admin_without_token['cinemas'], admin_without_token['news'], admin_without_token['showtimes'],
+        admin_with_user_token['movies'], admin_with_user_token['cinemas'], admin_with_user_token['news'], admin_with_user_token['showtimes'],
+        admin_stats['users'], admin_stats['bookings'],
+        booking_auth, booking_guest
     ]
     
     passed_tests = sum(all_tests)
     total_tests = len(all_tests)
     
-    print(f"\nOverall: {passed_tests}/{total_tests} tests passed")
+    print(f"\n🎯 OVERALL RESULT: {passed_tests}/{total_tests} tests passed")
     
     if passed_tests == total_tests:
-        print("🎉 ALL TESTS PASSED!")
+        print("🎉 ALL AUTHENTICATION TESTS PASSED!")
         return True
     else:
-        print("⚠️  Some tests failed. Check logs above for details.")
+        print("⚠️  Some authentication tests failed. Check logs above for details.")
         return False
 
 if __name__ == "__main__":
