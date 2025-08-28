@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, String, Text, DECIMAL, Boolean, Date, Time, TIMESTAMP, ForeignKey, ARRAY
+from sqlalchemy import Column, Integer, String, Text, DECIMAL, Boolean, Date, Time, TIMESTAMP, ForeignKey, ARRAY, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
 import uuid
+import enum
 
 class Movie(Base):
     __tablename__ = "movies"
