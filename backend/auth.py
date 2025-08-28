@@ -125,7 +125,8 @@ async def get_current_user_optional(
         if user_id is None:
             return None
             
-        user = crud.get_user(db, user_id=user_id)
+        from models import User  # Import here to avoid circular import
+        user = db.query(User).filter(User.id == user_id).first()
         return user
     except:
         return None
