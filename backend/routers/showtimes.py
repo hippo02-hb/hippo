@@ -51,7 +51,7 @@ def get_showtime(showtime_id: int, db: Session = Depends(get_db)):
     return showtime
 
 @router.post("/", response_model=schemas.Showtime)
-def create_showtime(showtime: schemas.ShowtimeCreate, db: Session = Depends(get_db)):
+def create_showtime(showtime: schemas.ShowtimeCreate, db: Session = Depends(get_db), current_user = Depends(get_admin_user)):
     """Create new showtime (Admin only)"""
     return crud.create_showtime(db=db, showtime=showtime)
 
