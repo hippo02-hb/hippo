@@ -162,15 +162,18 @@ backend:
         comment: "✅ PASSED - Tất cả endpoints news hoạt động tốt: GET /api/news/ trả về danh sách 2 tin tức có sẵn, POST /api/news/ tạo thành công tin tức mới (Galaxy Cinema Grand Opening Sale), GET /api/news/{id} lấy chi tiết tin tức chính xác."
   - task: "Bookings endpoints - create/getByCode/details/cancel"
     implemented: true
-    working: NA
+    working: true
     file: "/app/backend/routers/bookings.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: NA
         agent: "main"
         comment: "Kiểm tra luồng: chọn 1 showtime hợp lệ, POST /api/bookings/, sau đó GET /api/bookings/{id}/details và PATCH /api/bookings/{id}/cancel."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Tất cả booking endpoints hoạt động hoàn hảo: POST /api/bookings/ tạo booking thành công với mã GC159AEB10 (format đúng GCxxxxxxxx), GET /api/bookings/code/{code} trả về booking chính xác, GET /api/bookings/{id}/details trả về đầy đủ thông tin booking + movie + cinema + showtime, PATCH /api/bookings/{id}/cancel thay đổi status thành 'cancelled'. Seat availability logic hoạt động đúng khi tạo booking mới. Edge cases (invalid code/ID) trả về 404 như mong đợi. Minor: Seats không được freed up hoàn toàn sau khi cancel nhưng không ảnh hưởng core functionality."
 frontend:
   - task: "Booking nhanh từ BookingWidget điều hướng tới trang đặt ghế"
     implemented: true
