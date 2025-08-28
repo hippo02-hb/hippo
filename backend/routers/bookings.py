@@ -26,6 +26,14 @@ def create_booking(
             if not booking.customer_phone and current_user.phone:
                 booking.customer_phone = current_user.phone
         
+        # Validate required fields are present
+        if not booking.customer_name:
+            raise HTTPException(status_code=400, detail="Customer name is required")
+        if not booking.customer_email:
+            raise HTTPException(status_code=400, detail="Customer email is required")
+        if not booking.customer_phone:
+            raise HTTPException(status_code=400, detail="Customer phone is required")
+        
         return crud.create_booking(db=db, booking=booking)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
