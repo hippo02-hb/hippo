@@ -1,7 +1,13 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional
 from datetime import date, time, datetime
 from decimal import Decimal
+from enum import Enum
+
+class UserRole(str, Enum):
+    USER = "user"
+    ADMIN = "admin" 
+    SUPER_ADMIN = "super_admin"
 
 # Movie Schemas
 class MovieBase(BaseModel):
