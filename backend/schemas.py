@@ -112,7 +112,14 @@ class BookingBase(BaseModel):
     total_amount: Decimal
     payment_method: Optional[str] = "cash"
 
-class BookingCreate(BookingBase):
+class BookingCreate(BaseModel):
+    showtime_id: int
+    customer_name: Optional[str] = None  # Optional - auto-filled for authenticated users
+    customer_phone: Optional[str] = None  # Optional - auto-filled for authenticated users
+    customer_email: Optional[str] = None  # Optional - auto-filled for authenticated users
+    seats: List[str]
+    total_amount: Decimal
+    payment_method: Optional[str] = "cash"
     user_id: Optional[int] = None  # Optional for logged-in users
 
 class Booking(BookingBase):
