@@ -28,12 +28,12 @@ def get_movie(movie_id: int, db: Session = Depends(get_db)):
     return movie
 
 @router.post("/", response_model=schemas.Movie)
-def create_movie(movie: schemas.MovieCreate, db: Session = Depends(get_db)):
+def create_movie(movie: schemas.MovieCreate, db: Session = Depends(get_db), current_user = Depends(get_admin_user)):
     """Create new movie (Admin only)"""
     return crud.create_movie(db=db, movie=movie)
 
 @router.put("/{movie_id}", response_model=schemas.Movie)
-def update_movie(movie_id: int, movie: schemas.MovieCreate, db: Session = Depends(get_db)):
+def update_movie(movie_id: int, movie: schemas.MovieCreate, db: Session = Depends(get_db), current_user = Depends(get_admin_user)):
     """Update movie (Admin only)"""
     updated_movie = crud.update_movie(db=db, movie_id=movie_id, movie=movie)
     if not updated_movie:
