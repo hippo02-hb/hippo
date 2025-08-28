@@ -312,7 +312,7 @@ def test_booking_endpoints():
             "customer_name": "Nguyen Van Minh",
             "customer_phone": "0901234567",
             "customer_email": "minh.nguyen@email.com",
-            "seats": ["A1", "A2"],
+            "seats": ["B3", "B4"],
             "total_amount": 200000,
             "payment_method": "credit_card"
         }
